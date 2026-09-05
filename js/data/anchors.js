@@ -676,7 +676,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
               text: '大办，给足婆婆面子',
               cost: { money: P.partyBig },
               effects: {
-                money: gift - P.partyBig, spendKind: 'party', face: 12, inLaw: 6, mama: -6,
+                money: -P.partyBig, income: gift, spendKind: 'party', face: 12, inLaw: 6, mama: -6,
                 log: { text: '满月酒三桌，孩子穿着小礼服被抱出来展览，收了一堆长命锁和红包。', hl: true },
               },
               result: `三桌酒席，孩子被轮番抱了一圈，睡了醒醒了哭。礼金收了 ${util.fmtMoney(gift)}，婆婆全程笑得合不拢嘴。${isMama ? '回家的车上，你一句话也不想说。' : '回家路上，妻子一句话也没说。'}`,
@@ -684,7 +684,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
             {
               text: '至亲小聚一顿',
               cost: { money: P.partySmall },
-              effects: { money: 2000 - P.partySmall, spendKind: 'party', face: 2, mama: 2, inLaw: 2 },
+              effects: { money: -P.partySmall, income: 2000, spendKind: 'party', face: 2, mama: 2, inLaw: 2 },
               result: '一桌人，一锅汤，孩子睡在婴儿床里全程没被打扰。简单，但什么都齐了。礼金聊胜于无。',
             },
             {

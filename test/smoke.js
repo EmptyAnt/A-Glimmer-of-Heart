@@ -70,7 +70,9 @@ const stats = {
   pendingLeft: 0,
   endedBefore28: 0,
 };
-const allAnchors = GAME.ANCHORS.map((a) => a.id);
+const allAnchors = GAME.ANCHORS.map((a) => a.id)
+  .concat(GAME.ANCHOR_FOLLOWUPS.map((a) => a.id))
+  .concat(GAME.illness.followups().map((a) => a.id));
 const allTemplates = GAME.TEMPLATES.map((t) => t.id);
 
 for (let i = 0; i < RUNS; i++) {
@@ -80,7 +82,7 @@ for (let i = 0; i < RUNS; i++) {
       i % 2 === 0 ? 'papa' : 'mama', // 两种视角都要被跑到
     );
     stats.runs++;
-    if (state.day < GAME.CONFIG.TOTAL_DAYS - 1) stats.endedBefore28++;
+    if (state.day < GAME.engine.totalTicks() - 1) stats.endedBefore28++;
     stats.weightPSum += report.weightP;
     stats.securitySum += report.security;
     stats.moneySum += report.family.money;

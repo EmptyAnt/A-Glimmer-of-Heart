@@ -31,7 +31,11 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       anchorFired: {}, templateFired: {}, illnessFired: 0,
       flagCount: {}, flagSources: {},
       weightPSum: 0, securitySum: 0, spendByKind: {},
-      allAnchorIds: G.ANCHORS.map((a) => a.id),
+      allAnchorIds: [
+        ...G.ANCHORS.map((a) => a.id),
+        ...G.ANCHOR_FOLLOWUPS.map((a) => a.id),
+        ...G.illness.followups().map((a) => a.id),
+      ],
     };
     let i = 0;
     const BATCH = 25;

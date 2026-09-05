@@ -321,10 +321,14 @@ var GAME = globalThis.GAME || (globalThis.GAME || (globalThis.GAME = {}));
         return 0.01 * socialMult * G.CONFIG.CONSTITUTION_TIERS[state.child.constitution].illnessMult;
       },
       make(state) {
+        const inDaycare = state.family.careMode === 'daycare';
+        const intro = inDaycare
+          ? '托班群里通知：班里有孩子确诊手足口，请家长注意观察。'
+          : '周末的亲子乐园回来两天，他忽然没什么胃口，还有点低烧。';
         return {
           id: 'ill_hfmd', kind: 'illness', title: '手心脚心起了小疱疹',
           art: { pose: '幼儿', expr: '不适', outfit: '罩衣', scene: '医院' },
-          text: '托班群里通知：班里有孩子确诊手足口，请家长注意观察。当晚你翻了他的手心脚心——小红包已经起来了几个，嘴里还有两个溃疡点，疼得不肯吃饭。',
+          text: `${intro}当晚你翻了他的手心脚心——小红包已经起来了几个，嘴里还有两个溃疡点，疼得不肯吃饭。`,
           choices: [
             {
               text: '居家隔离，对症护理', cost: { energy: 2 },

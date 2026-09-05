@@ -106,11 +106,5 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       c.length = Math.round((c.length + lengthCm) * 10) / 10;
       return { weightG, lengthCm };
     },
-
-    levelText(p) {
-      if (p >= 88) return 'high';
-      if (p >= 15) return 'normal';
-      return 'low';
-    },
   };
 })(GAME);

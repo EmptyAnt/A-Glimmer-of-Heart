@@ -8,6 +8,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
   const EXPR_EMOJI = {
     熟睡: '😴', 平静: '🙂', 大哭: '😭', 哭: '😭', 笑: '😂', 委屈: '🥺', 不适: '🤒',
+    专注: '👀', 生气: '😤',
   };
 
   function el(tag, className, text) {

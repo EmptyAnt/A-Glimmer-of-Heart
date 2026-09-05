@@ -8,7 +8,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     'money', 'energy', 'marriage', 'inLaw', 'mama', 'face', 'security',
     'nursingSkill', 'gasCount', 'visitorCount', 'overfed', 'nightWakeStreak',
     'weightG', 'lengthCm', 'careMode', 'feedingMode', 'childName',
-    'monthlyIncomeMul', 'setConsumable', 'setFlags', 'unsetFlags', 'later', 'log', 'spendKind',
+    'monthlyIncomeMul', 'setConsumable', 'setFlags', 'unsetFlags', 'later', 'log', 'spendKind', 'income',
   ];
   const KNOWN_CONDITIONS = [
     'anyOf', 'day', 'dayGte', 'dayLte', 'flagsAll', 'flagsAny', 'notFlags',

@@ -68,6 +68,8 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       pending: [],
       log: [],
       consumables: { diaper: null, formula: null }, // 档位选择：null=未定（按默认档计费）
+      lastSettleAge: 0, // 消耗品上次结算到的年龄（天），追账式结算的游标
+      inDebt: false, // 负债日志只在新陷入时记一次
       doneAnchors: {},
       repeatLast: {},
       todayFamilyCount: {},

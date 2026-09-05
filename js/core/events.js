@@ -69,7 +69,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
   function resolveEventRef(id, state) {
     const fromIllness = G.illness.findFollowup(id);
     if (fromIllness) {
-      const event = { ...fromIllness, uid: `${id}#${state.day}` };
+      const event = { ...fromIllness, uid: `${id}#${state.day}`, defId: id }; // defId 让触发率统计能覆盖到
       if (fromIllness.make) {
         const merged = fromIllness.make(state);
         delete event.make;
@@ -99,10 +99,12 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
   }
 
   function pickTemplates(state) {
-    const stageId = G.engine.stageOf(state.day).id;
+    const stage = G.engine.stageOf(state.day);
+    const stageId = stage.id;
+    const stageTick = state.day - stage.startTick;
     const eligible = G.TEMPLATES.filter((tpl) => {
       if (tpl.stage !== 'both' && (tpl.stage || 'newborn') !== stageId) return false;
-      if (tpl.minDay !== undefined && (state.day - G.engine.stageOf(state.day).startTick) < tpl.minDay) return false;
+      if (tpl.minDay !== undefined && stageTick < tpl.minDay) return false;
       if (!tpl.canTrigger(state)) return false;
       const shownToday = state.todayFamilyCount[tpl.id] || 0;
       if (shownToday >= tpl.perDayMax) return false;

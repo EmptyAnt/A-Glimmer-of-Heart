@@ -36,9 +36,9 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     return cost;
   }
 
-  function settleConsumables(state) {
-    const cost = weeklyConsumableCost(state);
-    const careCost = CONFIG.CARE_WEEKLY_COST[state.family.careMode] || 0;
+  function settleConsumables(state, weeks) {
+    const cost = weeklyConsumableCost(state) * weeks;
+    const careCost = (CONFIG.CARE_WEEKLY_COST[state.family.careMode] || 0) * weeks;
     G.effects.apply(state, { money: -cost, spendKind: 'consumables' });
     if (careCost > 0) {
       G.effects.apply(state, { money: -careCost, spendKind: 'care' });
@@ -46,7 +46,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     state.log.push({
       day: state.day,
       title: '',
-      text: `本周固定开销：${util.fmtMoney(cost)}（尿不湿/奶粉按档位${careCost > 0 ? ` + 带娃开销 ${util.fmtMoney(careCost)}` : ''}）`,
+      text: `近 ${weeks} 周固定开销：${util.fmtMoney(cost)}（尿不湿/奶粉按档位${careCost > 0 ? ` + 带娃开销 ${util.fmtMoney(careCost)}` : ''}）`,
     });
   }
 
@@ -81,8 +81,12 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       state.log.push({ day: state.day, title: '', text: `工资到账：${util.fmtMoney(state.family.monthlyIncome)}。` });
     }
 
-    // 固定开销按"真实周"结算（ageDays 每过 7 天一次，两种粒度天然对齐）
-    if (state.ageDays > 0 && state.ageDays % 7 === 0) settleConsumables(state);
+    // 固定开销追账式结算：跨月 tick（幼儿期一跳 30 天）也要把中间的每一周都补上
+    const weeksElapsed = Math.floor((state.ageDays - state.lastSettleAge) / 7);
+    if (weeksElapsed > 0) {
+      settleConsumables(state, weeksElapsed);
+      state.lastSettleAge += weeksElapsed * 7;
+    }
 
     const injected = G.effects.processPending(state);
     const illness = G.illness.roll(state);
@@ -116,8 +120,9 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     }
     if (f.money < 0) {
       f.face = util.clamp(f.face - 1, 0, 100);
-      state.log.push({ day: state.day, title: '', text: '存款见底了。这个月的账，还不知道怎么平。' });
+      if (!state.inDebt) state.log.push({ day: state.day, title: '', text: '存款见底了。这个月的账，还不知道怎么平。' });
     }
+    state.inDebt = f.money < 0;
     if (state.day >= totalTicks() - 1) state.ended = true;
   }
 

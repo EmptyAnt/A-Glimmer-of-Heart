@@ -22,6 +22,8 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         state.stats.spend[kind] = (state.stats.spend[kind] || 0) + (-effects.money);
       }
     }
+    // income：与 money 分离的进账（礼金等），不进支出账本
+    if (effects.income) f.money += effects.income;
     if (effects.energy) f.energy += effects.energy; // 允许透支为负，finishDay 结算代价
     for (const key of FAMILY_BARS) {
       if (effects[key]) {
