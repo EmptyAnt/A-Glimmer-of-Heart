@@ -1,0 +1,116 @@
+// 生长系统：WHO 生长曲线的极简版（关键年龄锚点线性插值 + 分段日增率）。
+// 月子章按天结算、婴儿章按周结算，统一走 applyGrowth(state, days)。
+var GAME = globalThis.GAME || (globalThis.GAME = {});
+
+(function (G) {
+  const { clamp, randInt, rand } = G.util;
+
+  // 关键年龄锚点（天）：出生 / 满月 / 3月 / 6月 / 9月 / 1岁 / 18月 / 2岁 / 3岁
+  const AGE_ANCHORS = [0, 28, 90, 180, 270, 365, 540, 730, 1095];
+
+  const WEIGHT_REF = {
+    boy: {
+      p3: [2.5, 3.4, 5.0, 6.4, 7.1, 7.7, 9.1, 10.2, 12.1],
+      p50: [3.3, 4.5, 6.4, 7.9, 8.9, 9.6, 10.9, 12.2, 14.3],
+      p97: [4.1, 5.6, 8.0, 9.7, 10.8, 11.5, 12.9, 14.5, 17.2],
+    },
+    girl: {
+      p3: [2.4, 3.2, 4.6, 5.8, 6.5, 7.0, 8.4, 9.5, 11.4],
+      p50: [3.2, 4.2, 5.8, 7.3, 8.2, 8.9, 10.2, 11.5, 13.9],
+      p97: [4.0, 5.2, 7.3, 8.9, 9.9, 10.6, 12.3, 13.9, 16.9],
+    },
+  };
+  const LENGTH_REF = {
+    boy: {
+      p3: [46.5, 51.0, 57.5, 63.0, 67.0, 70.5, 77.5, 82.1, 90.7],
+      p50: [50.5, 54.5, 61.4, 67.8, 72.0, 75.7, 82.3, 87.1, 96.1],
+      p97: [54.0, 58.0, 65.3, 71.5, 76.0, 79.5, 87.1, 92.3, 101.7],
+    },
+    girl: {
+      p3: [46.0, 50.5, 56.5, 62.0, 65.8, 69.0, 76.0, 80.6, 89.4],
+      p50: [49.8, 53.5, 59.9, 66.0, 70.1, 74.0, 80.7, 85.7, 95.1],
+      p97: [53.0, 57.0, 64.0, 70.0, 74.5, 78.0, 85.7, 91.1, 100.7],
+    },
+  };
+
+  // 喂养方式对应的基础日增重（克，1-6月内有效；加辅食后影响减弱）
+  const GAIN_BY_FEEDING = { mu: 35, nai: 43, mix: 39 };
+
+  function bracket(arr, age) {
+    for (let i = 1; i < arr.length; i++) {
+      if (age <= arr[i]) return [arr[i - 1], arr[i], i];
+    }
+    return [arr[arr.length - 2], arr[arr.length - 1], arr.length - 1];
+  }
+
+  // 三点参考值（P3/P50/P97）近似百分位，够原型用
+  function percentileOf(value, p3, p50, p97) {
+    if (value <= p3) return 2;
+    if (value >= p97) return 98;
+    if (value <= p50) return 3 + ((value - p3) / (p50 - p3)) * 47;
+    return 50 + ((value - p50) / (p97 - p50)) * 47;
+  }
+
+  function refAt(refTable, gender, key, age) {
+    const series = refTable[gender][key];
+    const [a0, a1, i] = bracket(AGE_ANCHORS, age);
+    const t = (age - a0) / Math.max(1, a1 - a0);
+    return series[i - 1] + (series[i] - series[i - 1]) * t;
+  }
+
+  G.growth = {
+    weightPercentile(state) {
+      const age = clamp(state.ageDays, 0, 1095);
+      return percentileOf(
+        state.child.weight,
+        refAt(WEIGHT_REF, state.child.gender, 'p3', age),
+        refAt(WEIGHT_REF, state.child.gender, 'p50', age),
+        refAt(WEIGHT_REF, state.child.gender, 'p97', age),
+      );
+    },
+    lengthPercentile(state) {
+      const age = clamp(state.ageDays, 0, 1095);
+      return percentileOf(
+        state.child.length,
+        refAt(LENGTH_REF, state.child.gender, 'p3', age),
+        refAt(LENGTH_REF, state.child.gender, 'p50', age),
+        refAt(LENGTH_REF, state.child.gender, 'p97', age),
+      );
+    },
+
+    // 推进 days 天的生长，返回变化摘要
+    applyGrowth(state, days) {
+      const c = state.child;
+      const age = state.ageDays;
+      const mod = G.CONFIG.CONSTITUTION_TIERS[c.constitution].growthMod;
+      // 过度喂养的影响在辅食期前最明显（半岁后代谢摊平）
+      const over = c.overfed > 0 && age <= 180 ? 4 : 0;
+
+      // 分段日增重：新生儿回升期 → 1-3月猛长期 → 逐步放缓（对标 WHO 月度中位增速）
+      let dailyWeight;
+      if (age <= 4) dailyWeight = -24 + age * 8 + mod; // 生理性跌秤后回升
+      else if (age <= 28) dailyWeight = 37 + mod + over + randInt(-5, 8);
+      else if (age <= 90) dailyWeight = 26 + mod + over + randInt(-4, 6);
+      else if (age <= 180) dailyWeight = 18 + Math.round(mod / 2) + over + randInt(-3, 5);
+      else if (age <= 270) dailyWeight = 13 + randInt(-3, 4);
+      else if (age <= 365) dailyWeight = 9 + randInt(-3, 4);
+      else if (age <= 730) dailyWeight = 8 + randInt(-3, 4); // 1-2岁：稳步长
+      else dailyWeight = 6 + randInt(-3, 4); // 2-3岁
+
+      const dailyLen = age <= 28 ? 0.12 : age <= 90 ? 0.1 : age <= 180 ? 0.065 : age <= 270 ? 0.045
+        : age <= 365 ? 0.035 : age <= 540 ? 0.043 : age <= 730 ? 0.04 : 0.035;
+
+      const weightG = Math.round(dailyWeight * days);
+      const lengthCm = Math.round(dailyLen * days * 10) / 10;
+      c.weight = Math.round((c.weight + weightG / 1000) * 1000) / 1000;
+      c.length = Math.round((c.length + lengthCm) * 10) / 10;
+      return { weightG, lengthCm };
+    },
+
+    levelText(p) {
+      if (p >= 88) return 'high';
+      if (p >= 15) return 'normal';
+      return 'low';
+    },
+  };
+})(GAME);

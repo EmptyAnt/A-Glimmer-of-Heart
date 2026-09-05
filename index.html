@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>寸心 · A Glimmer of Heart</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <!-- 开局：选家庭、起名字 -->
+  <section id="screen-start" class="screen"></section>
+  <!-- 出生报告 -->
+  <section id="screen-birth" class="screen hidden"></section>
+  <!-- 主游戏界面 -->
+  <section id="screen-game" class="screen hidden">
+    <header id="topbar"></header>
+    <div class="game-layout">
+      <aside id="panel-family" class="panel"></aside>
+      <main id="event-area"></main>
+      <aside id="panel-child" class="panel"></aside>
+    </div>
+    <div id="tabs">
+      <button class="tab-btn active" data-tab="log">时光相册</button>
+      <button class="tab-btn" data-tab="dev">开发者视图</button>
+    </div>
+    <div id="tab-log" class="tab-page"></div>
+    <div id="tab-dev" class="tab-page hidden"></div>
+  </section>
+  <!-- 满月结算 -->
+  <section id="screen-end" class="screen hidden"></section>
+</div>
+
+<script src="js/data/config.js"></script>
+<script src="js/data/flags.js"></script>
+<script src="js/data/growth.js"></script>
+<script src="js/data/illness.js"></script>
+<script src="js/data/anchors.js"></script>
+<script src="js/data/templates.js"></script>
+<script src="js/core/conditions.js"></script>
+<script src="js/core/effects.js"></script>
+<script src="js/core/events.js"></script>
+<script src="js/core/state.js"></script>
+<script src="js/core/engine.js"></script>
+<script src="js/ui/render.js"></script>
+<script src="js/ui/main.js"></script>
+</body>
+</html>

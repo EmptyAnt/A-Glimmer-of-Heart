@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>事件编辑器 · 寸心 A Glimmer of Heart</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/editor.css">
+</head>
+<body data-stage="newborn">
+<div id="editor-app">
+  <header class="ed-topbar">
+    <h1>事件编辑器</h1>
+    <span class="sub">《寸心 A Glimmer of Heart》· 校验 · 浏览 · Flag收敛 · 模拟看板 —— 与游戏共用同一份数据与引擎</span>
+    <nav class="ed-tabs">
+      <button class="tab-btn active" data-tab="validate">校验报告</button>
+      <button class="tab-btn" data-tab="library">事件库</button>
+      <button class="tab-btn" data-tab="flags">Flag收敛图</button>
+      <button class="tab-btn" data-tab="sim">模拟看板</button>
+    </nav>
+  </header>
+
+  <!-- 校验 -->
+  <section id="tab-validate" class="ed-page">
+    <div class="ed-toolbar">
+      <button id="btn-validate">重新校验</button>
+      <span id="validate-summary" class="sub"></span>
+    </div>
+    <div id="validate-list"></div>
+  </section>
+
+  <!-- 事件库 -->
+  <section id="tab-library" class="ed-page hidden">
+    <div class="ed-toolbar">
+      <select id="filter-pool">
+        <option value="anchors">锚点事件</option>
+        <option value="followups">后续事件</option>
+        <option value="templates">模板家族</option>
+        <option value="illness">疾病池</option>
+      </select>
+      <select id="filter-stage">
+        <option value="">全部阶段</option>
+      </select>
+      <input id="filter-search" type="text" placeholder="搜索 id / 标题 / 文案…">
+      <span id="library-count" class="sub"></span>
+    </div>
+    <div class="ed-split">
+      <div id="library-table" class="ed-table-wrap"></div>
+      <div id="library-detail" class="ed-detail"></div>
+    </div>
+  </section>
+
+  <!-- Flag 收敛图 -->
+  <section id="tab-flags" class="ed-page hidden">
+    <div class="ed-toolbar">
+      <span class="sub">每个 flag：谁设置它（来源/收敛路径）· 谁消费它（条件引用）· 是否注册</span>
+    </div>
+    <div id="flags-table" class="ed-table-wrap"></div>
+  </section>
+
+  <!-- 模拟看板 -->
+  <section id="tab-sim" class="ed-page hidden">
+    <div class="ed-toolbar">
+      <label>局数 <input id="sim-runs" type="number" value="500" min="50" max="5000" step="50"></label>
+      <button id="btn-sim">运行模拟</button>
+      <button id="btn-sim-stop" class="ghost" disabled>停止</button>
+      <div class="ed-progress"><div id="sim-progress-fill"></div></div>
+      <span id="sim-status" class="sub"></span>
+    </div>
+    <div id="sim-report" class="ed-split-v"></div>
+  </section>
+</div>
+
+<script src="js/data/config.js"></script>
+<script src="js/data/flags.js"></script>
+<script src="js/data/growth.js"></script>
+<script src="js/data/illness.js"></script>
+<script src="js/data/anchors.js"></script>
+<script src="js/data/templates.js"></script>
+<script src="js/core/conditions.js"></script>
+<script src="js/core/effects.js"></script>
+<script src="js/core/events.js"></script>
+<script src="js/core/state.js"></script>
+<script src="js/core/engine.js"></script>
+<script src="js/editor/validate.js"></script>
+<script src="js/editor/dashboard.js"></script>
+<script src="js/editor/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+/* 为人父母 · 月子篇 —— 原型样式 */
+:root {
+  --bg: #f6f1e7;
+  --card: #fffdf8;
+  --ink: #3d3730;
+  --ink-light: #8a8177;
+  --accent: #c96f4a;
+  --accent-soft: #f3dccd;
+  --line: #e5ddd0;
+  --good: #5a8a5c;
+  --bad: #b5563f;
+  --shadow: 0 2px 10px rgba(80, 60, 40, 0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.7;
+}
+
+#app { max-width: 960px; margin: 0 auto; padding: 16px; }
+.screen { animation: fadein 0.3s ease; }
+.hidden { display: none !important; }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+
+h1 { font-size: 26px; letter-spacing: 2px; }
+h2 { font-size: 18px; margin-bottom: 10px; }
+.sub { color: var(--ink-light); font-size: 13px; }
+.center { text-align: center; }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  padding: 10px 22px;
+  font-size: 15px;
+  transition: opacity 0.15s;
+}
+button:hover { opacity: 0.88; }
+button:disabled { background: #cfc7ba; cursor: not-allowed; }
+button.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+
+/* ---------- 开局屏 ---------- */
+.start-box { max-width: 640px; margin: 40px auto; text-align: center; }
+.start-box .tagline { margin: 12px 0 28px; }
+.name-form { display: flex; gap: 10px; justify-content: center; margin: 24px 0; flex-wrap: wrap; }
+.name-form input {
+  width: 130px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  font-size: 14px;
+  font-family: inherit;
+}
+.preset-cards { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.preset-card {
+  flex: 1 1 170px;
+  max-width: 200px;
+  background: var(--card);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 16px 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: border-color 0.15s;
+}
+.preset-card:hover { border-color: var(--accent); }
+.preset-card .money { color: var(--accent); font-weight: bold; }
+.preset-card .desc { font-size: 12px; color: var(--ink-light); margin-top: 8px; text-align: left; }
+
+/* ---------- 出生报告 ---------- */
+.birth-box { max-width: 520px; margin: 40px auto; text-align: center; }
+.birth-card {
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 28px 24px;
+  margin: 20px 0;
+}
+.birth-stats { display: flex; justify-content: center; gap: 30px; margin: 16px 0; }
+.birth-stats b { font-size: 22px; display: block; }
+
+/* ---------- 主界面 ---------- */
+#topbar { margin-bottom: 12px; }
+.topbar-row { display: flex; justify-content: space-between; align-items: baseline; }
+.progress { height: 6px; background: var(--line); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.progress > div { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; }
+
+.game-layout {
+  display: grid;
+  grid-template-columns: 210px 1fr 210px;
+  gap: 14px;
+  align-items: start;
+}
+@media (max-width: 760px) {
+  .game-layout { grid-template-columns: 1fr; }
+}
+
+.panel {
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 14px;
+  font-size: 13px;
+}
+.panel h3 { font-size: 14px; margin-bottom: 10px; color: var(--ink-light); font-weight: normal; }
+.stat-row { display: flex; justify-content: space-between; margin: 4px 0; }
+.bar { height: 8px; background: var(--line); border-radius: 4px; margin: 2px 0 8px; overflow: hidden; }
+.bar > div { height: 100%; border-radius: 4px; transition: width 0.3s; }
+.bar-good > div { background: var(--good); }
+.bar-mid > div { background: #c99a4a; }
+.bar-bad > div { background: var(--bad); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.energy-dots { font-size: 16px; letter-spacing: 3px; }
+
+/* ---------- 事件卡 ---------- */
+.event-card {
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+}
+.event-title { font-size: 18px; font-weight: bold; margin-bottom: 12px; }
+.event-text { font-size: 14.5px; white-space: pre-wrap; flex: 1; }
+.queue-dots { text-align: center; color: var(--ink-light); font-size: 12px; margin: 10px 0 2px; letter-spacing: 4px; }
+
+.art-block {
+  align-self: center;
+  width: 130px;
+  height: 130px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.art-block .emoji { font-size: 52px; line-height: 1.2; }
+.art-block .art-key { font-size: 10px; color: var(--ink-light); text-align: center; line-height: 1.5; }
+
+.choices { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.choice-btn {
+  text-align: left;
+  background: #fff;
+  color: var(--ink);
+  border: 1.5px solid var(--line);
+  padding: 10px 14px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+.choice-btn:hover { border-color: var(--accent); color: var(--accent); opacity: 1; }
+.choice-btn .cost { float: right; color: var(--ink-light); font-size: 12px; }
+.choice-btn:disabled { color: #b5ada1; border-color: var(--line); background: #f4f0e8; }
+.choice-btn:disabled .cost { color: var(--bad); }
+
+.result-text { font-size: 15px; color: var(--ink); white-space: pre-wrap; }
+.result-hint { color: var(--ink-light); font-size: 12px; margin-top: 8px; }
+.day-calm { text-align: center; color: var(--ink-light); padding: 60px 0; }
+.next-day-btn { display: block; margin: 16px auto 0; }
+
+/* ---------- 时光相册 / 开发者视图 ---------- */
+#tabs { margin-top: 16px; display: flex; gap: 8px; }
+.tab-btn {
+  background: transparent;
+  color: var(--ink-light);
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+.tab-btn.active { background: var(--accent); color: #fff; }
+.tab-page {
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 14px;
+  margin-top: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  font-size: 13px;
+}
+.log-item { padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.log-item .d { color: var(--ink-light); font-size: 11px; margin-right: 8px; }
+.log-item.hl .t { color: var(--accent); font-weight: bold; }
+#tab-dev pre { font-size: 11px; white-space: pre-wrap; font-family: Consolas, monospace; }
+
+/* ---------- 结算 ---------- */
+.end-box { max-width: 640px; margin: 30px auto; }
+.end-section { background: var(--card); border-radius: 12px; box-shadow: var(--shadow); padding: 20px; margin: 14px 0; }
+.seed-item { border-left: 3px solid var(--accent); padding: 8px 12px; margin: 10px 0; background: #faf6ef; border-radius: 0 8px 8px 0; }
+.seed-item .seed-name { font-weight: bold; }
+.seed-item .seed-src { font-size: 12px; color: var(--ink-light); }
+.seed-item .seed-preview { font-size: 13px; margin-top: 4px; color: #7a6a55; font-style: italic; }
+.end-stats { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; }
+.end-stats b { display: block; font-size: 20px; color: var(--accent); }
+
+/* ---------- 阶段主题色 ----------
+   body[data-stage] 切换整套 CSS 变量。当前原型只玩月子期；
+   后续八个阶段的配色已预配置：从暖橘（襁褓）一路走向沉稳（成年），
+   青春期用冷色与低饱和（学业压力），成年回到陶土色（烟火气）。 */
+body[data-stage="newborn"] { --bg: #f6f1e7; --card: #fffdf8; --accent: #c96f4a; --accent-soft: #f3dccd; --line: #e5ddd0; }
+body[data-stage="infant"] { --bg: #f8f4e4; --card: #fffefa; --accent: #c99a3f; --accent-soft: #f4e6c4; --line: #e8dec0; }
+body[data-stage="toddler"] { --bg: #f1f6ea; --card: #fdfffa; --accent: #679b52; --accent-soft: #dbeed1; --line: #d8e4cc; }
+body[data-stage="kindergarten"] { --bg: #eef5fa; --card: #fbfdff; --accent: #4d8fbe; --accent-soft: #d3e6f2; --line: #d0dfe9; }
+body[data-stage="primary"] { --bg: #eef4ef; --card: #fbfefb; --accent: #3e7d5e; --accent-soft: #d3e7da; --line: #d2e0d6; }
+body[data-stage="junior"] { --bg: #edf2f8; --card: #fbfcff; --accent: #48749f; --accent-soft: #d5e1ef; --line: #cfdce8; }
+body[data-stage="senior"] { --bg: #f2f0f8; --card: #fcfbff; --accent: #675d9e; --accent-soft: #e0dcf0; --line: #ded9ec; }
+body[data-stage="college"] { --bg: #eef7f5; --card: #fbfefd; --accent: #37948d; --accent-soft: #d2ebe8; --line: #cfe6e2; }
+body[data-stage="adult"] { --bg: #f7f1ee; --card: #fffdfc; --accent: #9d5a50; --accent-soft: #ecd5cf; --line: #e6d5cf; }
