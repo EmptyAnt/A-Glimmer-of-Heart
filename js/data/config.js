@@ -69,14 +69,22 @@ GAME.CONFIG = {
     { id: 'newborn', name: '月子期', ticks: 28, dayWeight: 1, energy: 3, unitLabel: '天' },
     { id: 'infant', name: '婴儿期', ticks: 48, dayWeight: 7, energy: 5, unitLabel: '周' },
     { id: 'toddler', name: '幼儿期', ticks: 24, dayWeight: 30, energy: 4, unitLabel: '月' },
+    { id: 'kindergarten', name: '幼儿园', ticks: 36, dayWeight: 30, energy: 4, unitLabel: '月' },
     // 以下阶段仅预配置主题色，尚未开放
-    { id: 'kindergarten', name: '幼儿园' },
     { id: 'primary', name: '小学' },
     { id: 'junior', name: '初中' },
     { id: 'senior', name: '高中' },
     { id: 'college', name: '大学' },
     { id: 'adult', name: '成家立业' },
   ],
+
+  // 幼儿园学费（月/元，按择园 flag 匹配）；公办园大班（入园第25个月起）免保教费——2025新政
+  KG_TUITION: {
+    '幼儿园·公办': 600,
+    '幼儿园·普惠': 1500,
+    '幼儿园·民办': 4500,
+    '幼儿园·国际': 15000,
+  },
 
   // 托育/阿姨的每周开销（careMode 在婴儿期切换为这些值）
   CARE_WEEKLY_COST: { daycare: 1000, nanny: 1500 },

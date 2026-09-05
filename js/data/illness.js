@@ -248,8 +248,9 @@ var GAME = globalThis.GAME || (globalThis.GAME || (globalThis.GAME = {}));
       stage: 'both',
       canTrigger: () => true,
       dailyProb(state) {
-        const daycareMult = state.family.careMode === 'daycare' ? 2.2 : 1;
-        return 0.012 * daycareMult * G.CONFIG.CONSTITUTION_TIERS[state.child.constitution].illnessMult;
+        // 集体生活交叉感染：托育期 daycare / 幼儿园全阶段 ×2.2
+        const groupMult = state.family.careMode === 'daycare' || G.engine.stageOf(state.day).id === 'kindergarten' ? 2.2 : 1;
+        return 0.012 * groupMult * G.CONFIG.CONSTITUTION_TIERS[state.child.constitution].illnessMult;
       },
       make(state) {
         const inDaycare = state.family.careMode === 'daycare';

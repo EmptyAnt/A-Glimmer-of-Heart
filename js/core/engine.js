@@ -22,7 +22,8 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     return CONFIG.STAGES.reduce((sum, s) => sum + (s.ticks || 0), 0);
   }
 
-  // 本周消耗品开销：尿不湿/奶粉按档位（母乳=0，混合=半量）+ 托育/阿姨的照护开销
+  // 本周消耗品开销：尿不湿/奶粉按档位（母乳=0，混合=半量）。
+  // 托育/阿姨的周费只在婴儿期收——幼儿园期由学费接管（见月度结算）。
   function weeklyConsumableCost(state) {
     const diaperCfg = CONFIG.CONSUMABLES.diaper;
     const diaperTier = diaperCfg.tiers.find((t) => t.id === (state.consumables.diaper || diaperCfg.default));
@@ -32,21 +33,17 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       const formulaTier = formulaCfg.tiers.find((t) => t.id === (state.consumables.formula || formulaCfg.default));
       cost += state.child.feedingMode === 'mix' ? Math.round(formulaTier.weekly / 2) : formulaTier.weekly;
     }
-    cost += CONFIG.CARE_WEEKLY_COST[state.family.careMode] || 0;
+    if (G.engine.stageOf(state.day).id === 'infant') cost += CONFIG.CARE_WEEKLY_COST[state.family.careMode] || 0;
     return cost;
   }
 
   function settleConsumables(state, weeks) {
     const cost = weeklyConsumableCost(state) * weeks;
-    const careCost = (CONFIG.CARE_WEEKLY_COST[state.family.careMode] || 0) * weeks;
     G.effects.apply(state, { money: -cost, spendKind: 'consumables' });
-    if (careCost > 0) {
-      G.effects.apply(state, { money: -careCost, spendKind: 'care' });
-    }
     state.log.push({
       day: state.day,
       title: '',
-      text: `近 ${weeks} 周固定开销：${util.fmtMoney(cost)}（尿不湿/奶粉按档位${careCost > 0 ? ` + 带娃开销 ${util.fmtMoney(careCost)}` : ''}）`,
+      text: `近 ${weeks} 周固定开销：${util.fmtMoney(cost)}（尿不湿/奶粉按档位）`,
     });
   }
 
@@ -78,7 +75,21 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     if (state.day !== 14 && monthNow > state.lastSalaryMonth) {
       state.family.money += state.family.monthlyIncome;
       state.lastSalaryMonth = monthNow;
-      state.log.push({ day: state.day, title: '', text: `工资到账：${util.fmtMoney(state.family.monthlyIncome)}。` });
+      // 幼儿园学费随月结算：择园 flag 决定档位；公办大班（入园第25个月起）免保教费
+      let tuitionNote = '';
+      if (state.stage === 'kindergarten') {
+        const kgMonth = state.tuitionMonths = (state.tuitionMonths || 0) + 1;
+        const isPublicFree = state.flags['幼儿园·公办'] && kgMonth > 24;
+        const tierFlag = Object.keys(CONFIG.KG_TUITION).find((f) => state.flags[f]) || '幼儿园·公办';
+        if (!isPublicFree) {
+          const tuition = CONFIG.KG_TUITION[tierFlag];
+          G.effects.apply(state, { money: -tuition, spendKind: 'education' });
+          tuitionNote = `，幼儿园学费 -${util.fmtMoney(tuition)}`;
+        } else if (kgMonth === 25) {
+          state.log.push({ day: state.day, title: '', text: '大班开学：公办园保教费全免（2025年秋季学期起的政策）。省下的这笔钱，你给它想好了三个去处。' });
+        }
+      }
+      state.log.push({ day: state.day, title: '', text: `工资到账：${util.fmtMoney(state.family.monthlyIncome)}${tuitionNote}。` });
     }
 
     // 固定开销追账式结算：跨月 tick（幼儿期一跳 30 天）也要把中间的每一周都补上

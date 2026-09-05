@@ -333,8 +333,8 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
   function renderEnd(container, report, onRestart) {
     container.textContent = '';
     const box = el('div', 'end-box');
-    box.appendChild(el('h1', null, '三岁了'));
-    box.appendChild(el('div', 'sub center', '—— 从呱呱坠地，到背上小书包之前 ——'));
+    box.appendChild(el('h1', null, '六岁了'));
+    box.appendChild(el('div', 'sub center', '—— 从呱呱坠地，到背起小学书包 ——'));
 
     const body = el('div', 'end-section');
     body.appendChild(el('h2', null, '满月体检报告'));

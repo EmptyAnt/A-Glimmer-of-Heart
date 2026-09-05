@@ -330,6 +330,22 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       pitch: '"扼杀毕加索的，从来不是天赋，是一面墙。"',
       effects: { money: -199, spendKind: 'education', face: 1 }, perk: '从此墙保住了，纸上、桌上、沙发上到处都是"作品"。你挑了一张贴在冰箱上，像个策展人。',
     },
+    // 幼儿园商品
+    {
+      name: '电话手表（顶配版）', price: 1299, kind: 'care', gender: null, stage: 'kindergarten',
+      pitch: '"全班就他没有！定位、通话、防水——家长的安心，孩子的社交入场券。"',
+      effects: { money: -1299, spendKind: 'care', face: 2, security: 1 }, perk: '戴上第一天，他给全家每人打了电话，包括外婆家固定电话。第二天，他用手表和同桌"碰一碰"加了好友。',
+    },
+    {
+      name: '轮滑鞋 + 护具全套', price: 599, kind: 'toys', gender: null, stage: 'kindergarten',
+      pitch: '"广场上同龄人手一双，摔出来的都是平衡感！"',
+      effects: { money: -599, spendKind: 'toys' }, perk: '护具比鞋还贵。第一个月你们在广场的塑胶地上度过了八个傍晚——他摔了十七次，站起来了十八次。',
+    },
+    {
+      name: '进阶百科绘本（30册）', price: 328, kind: 'education', gender: null, stage: 'kindergarten',
+      pitch: '"恐龙、太空、人体——十万个为什么的官方答案库！"',
+      effects: { money: -328, spendKind: 'education', security: 1 }, perk: '三十本书，他最爱的是恐龙那本——已经被翻到卷边。你现在能准确区分霸王龙和迅猛龙，这是你没想到的技能点。',
+    },
   ];
   const SHOP_CHANNELS = ['母婴店导购', '直播间', '妈妈群里的接龙', '商场专柜', '朋友圈代购'];
 
@@ -446,6 +462,19 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       smooth: '他靠在你怀里，跟着你一字一句地念。念错一个字他会纠正你——这本书他其实已经背下来了。',
       smoothEffects: { security: 2 },
     },
+    // 幼儿园场景
+    {
+      name: '接送路上', stage: 'kindergarten', mishap: '放学排队接娃，你迟到了十分钟。他站在老师旁边，看见你的瞬间嘴一瘪——又忍住了。',
+      smooth: '他远远看见你就开始跑，书包在背后一颠一颠。一路上嘴没停过：今天吃了什么、谁摔了、老师说了什么。',
+      smoothEffects: { security: 2 },
+      mishapEffects: { security: -1 },
+    },
+    {
+      name: '亲子作业', stage: 'kindergarten', mishap: '"亲子手工：落叶贴画"。交上去的作品太精致了，老师当众表扬——全班都知道是家长做的。',
+      smooth: '胶水糊了一手，树叶贴歪了三片，他坚持要自己完成。作品交上去朴素得像个笑话，他得意得像个国王。',
+      smoothEffects: { security: 2, nursingSkill: 1 },
+      mishapEffects: { face: 1, security: -2 },
+    },
   ];
 
   function makeDaily(state) {
@@ -499,6 +528,10 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     { t: '"同事家孩子早教班都上两年了，你们还没报？"', stage: 'toddler' },
     { t: '"人家孩子幼儿园面试一把过，你们想好上哪个园了吗？"', stage: 'toddler' },
     { t: '"你家这个还穿尿不湿呢？我们家早就不穿了。"', stage: 'toddler' },
+    { t: '"人家中班识字量就破五百了，你们开始学了吗？"', stage: 'kindergarten' },
+    { t: '"同事家孩子钢琴都考二级了，你们学什么了？"', stage: 'kindergarten' },
+    { t: '"人家孩子都能自己读绘本了，你们还陪读呢？"', stage: 'kindergarten' },
+    { t: '"幼小衔接班报了吗？现在零基础入学就是灾难。"', stage: 'kindergarten' },
   ];
 
   function makeCompare(state) {
@@ -653,9 +686,10 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       },
     },
     {
-      // 隔代养育冲突：婆婆妈妈们的经典战场，cond 绑定老人带娃模式
-      id: 'tpl_grandparent', name: '隔代冲突', stage: 'infant', weight: 18, minDay: 3, perDayMax: 1, cooldown: 3,
-      canTrigger: (state) => ['grandma', 'grandma2'].includes(state.family.careMode),
+      // 隔代养育冲突：婆婆妈妈们的经典战场（婴儿期+幼儿园期，老人仍在带娃或接送时）
+      id: 'tpl_grandparent', name: '隔代冲突', stage: 'both', weight: 18, minDay: 3, perDayMax: 1, cooldown: 3,
+      canTrigger: (state) => ['grandma', 'grandma2'].includes(state.family.careMode)
+        && G.engine.stageOf(state.day).id !== 'newborn',
       make(state) {
         const conflicts = [
           {
@@ -696,9 +730,85 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       },
     },
     {
-      // 小意外家族：移动目标时代的日常惊魂
-      id: 'tpl_accident', name: '小意外', stage: 'infant', weight: 14, minDay: 10, perDayMax: 1, cooldown: 4,
+      // 同学社交日常：幼儿园的小社会
+      id: 'tpl_classmate', name: '幼儿园的江湖', stage: 'kindergarten', weight: 16, minDay: 2, perDayMax: 1, cooldown: 3,
       canTrigger: () => true,
+      make(state) {
+        const scenes = [
+          {
+            name: '最好的朋友', text: '他宣布和豆豆"一辈子做朋友"，因为豆豆分了他半块饼干。第二天他们绝交了，因为抢了一辆黄色的小车。第三天，和好了。',
+            choices: [
+              { text: '认真听完全部剧情', effects: { security: 1, nursingSkill: 1 }, result: '你全程忍住了"这有什么好吵的"。小孩的友谊和成人的友谊规格相同——只是周期以天计。' },
+              { text: '"这有什么好吵的，明天就和好了"', effects: { security: -1 }, result: '他说"你不懂"，跑开了。你说中了结局，但错过了过程。' },
+            ],
+          },
+          {
+            name: '交换贴纸', text: '他用三张"闪卡"换了一张贴纸，回来越想越亏，想反悔又不敢，饭都吃得不香。',
+            choices: [
+              { text: '陪他演练怎么去"重新谈"', effects: { security: 2, nursingSkill: 2 }, result: '你们演了三轮"我可以换回来吗"。第二天他成功了，回家时举着三张闪卡，像举着奖杯。', },
+              { text: '"吃一堑长一智，下次想清楚"', effects: { security: 0 }, result: '他似懂非懂地点头。半个学期后，他成了班里最精明的贴纸商人——不知道和你有没有关系。' },
+              { text: '找老师把贴纸要回来', effects: { face: -1 }, result: '贴纸要回来了，"抠门"的外号也传开了。有些亏，吃了才是赚的。' },
+            ],
+          },
+          {
+            name: '没人跟他玩', text: '放学路上他忽然说："今天做游戏，没有人选我。"\n他说得很平静，平静得让你心里一沉。',
+            choices: [
+              { text: '抱抱他，问细节，教他下次主动一点', cost: { energy: 1 }, effects: { energy: -1, security: 3, nursingSkill: 1 }, result: '你们聊了一路。第二天你向老师打听：分组时他确实慢半拍。又过了两周，他有了固定的"工地三人组"（他们自称）。' },
+              { text: '"那明天带点贴纸去分给同学"', effects: { face: 1, setFlags: { '社交初体验': '用贴纸换来的朋友' } }, result: '立竿见影，第二天他就"朋友遍地"。你隐约觉得哪里不对，但说不出来。' },
+              { text: '"没事，妈妈/爸爸小时候也这样"', effects: { security: 1 }, result: '他抬头看你，眼睛里的问题很明显：那你后来有朋友了吗？你一时不知道怎么答。' },
+            ],
+          },
+        ];
+        const scene = util.pick(scenes);
+        return {
+          title: `幼儿园的江湖：${scene.name}`,
+          art: { pose: '幼儿', expr: '平静', outfit: '园服', scene: '幼儿园' },
+          text: scene.text,
+          choices: scene.choices,
+        };
+      },
+    },
+    {
+      // 家长群生态：面子与信息焦虑的主战场
+      id: 'tpl_parentgroup', name: '家长群', stage: 'kindergarten', weight: 14, minDay: 1, perDayMax: 1, cooldown: 4,
+      canTrigger: () => true,
+      make() {
+        const scenes = [
+          {
+            name: '老师的照片', text: '老师发了一组活动照（九张，四十个孩子）。你放大、再放大，在第三张的边角找到了他——半个后脑勺。',
+            choices: [
+              { text: '"谢谢老师！老师辛苦了！"', effects: { face: 1 }, result: '你回复了标准答案，和其他三十七位家长一字不差。剩下两位回的是语音。' },
+              { text: '私聊老师问孩子在园情况', effects: { face: -1, nursingSkill: 1 }, result: '老师回复得很客气："都挺好的。"三个字，你反复读了五遍，读出了二十种含义。' },
+            ],
+          },
+          {
+            name: '接龙', text: '群公告：明天春游，需要四位家长志愿者随行。下面已经接龙三位，都是你眼熟的"骨干妈妈"。',
+            choices: [
+              { text: '报名接龙', effects: { energy: -1, face: 3, marriage: 1 }, result: '春游那天你举着小旗子走在最前面，负责十二个孩子和一包鹌鹑蛋。累到失语，但他在同伴面前骄傲得发光。' },
+              { text: '装没看见', effects: {}, result: '接龙很快满员。你退出了聊天界面，把这归类为"这周没排上的事"之一。' },
+            ],
+          },
+          {
+            name: '凡尔赛', text: '有家长晒图：孩子在家用乐高搭了个"城堡"，配文"随便玩玩"。群里排队点赞，夸声整齐得像复制粘贴。',
+            choices: [
+              { text: '点赞并夸回去', effects: { face: 1 }, result: '你写了一段彩虹屁，删删改改发出去。家长群的礼尚往来，是一门精算学。' },
+              { text: '放下手机陪自己家孩子搭了半小时积木', effects: { security: 2, energy: -1 }, result: '他搭了个"停车场"，比城堡朴素得多。他说这是给你停车用的——你瞬间觉得群里的城堡也没什么。' },
+            ],
+          },
+        ];
+        const scene = util.pick(scenes);
+        return {
+          title: `家长群：${scene.name}`,
+          art: { pose: '幼儿', expr: '平静', outfit: '园服', scene: '家中·手机屏幕' },
+          text: scene.text,
+          choices: scene.choices,
+        };
+      },
+    },
+    {
+      // 小意外家族：移动目标时代的日常惊魂（婴儿期+幼儿园期）
+      id: 'tpl_accident', name: '小意外', stage: 'both', weight: 14, minDay: 10, perDayMax: 1, cooldown: 4,
+      canTrigger: (state) => G.engine.stageOf(state.day).id !== 'newborn',
       make(state) {
         const skilled = state.child.nursingSkill >= 5;
         const accidents = [

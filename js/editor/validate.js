@@ -95,9 +95,9 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     for (const { pool, def } of defs) {
       const loc = `${pool}/${def.id}`;
 
-      // 阶段与窗口（'both' 是模板/疾病的合法元值：所有可玩阶段通用）
+      // 阶段与窗口（'both' = 所有可玩阶段通用：模板/疾病/跨章节锚点）
       const stageId = def.stage || 'newborn';
-      if (stageId !== 'both' || pool === 'anchors' || pool === 'followups') {
+      if (stageId !== 'both') {
         const stage = G.CONFIG.STAGES.find((s) => s.id === stageId);
         if (!stage) {
           report('error', pool, def.id, `未知阶段 stage: '${stageId}'`);

@@ -90,7 +90,9 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     const defs = G.ANCHORS.concat(G.ANCHOR_FOLLOWUPS);
     return defs.filter((def) => {
       if (def.kind === 'followup') return false;
-      if ((def.stage || 'newborn') !== stage.id) return false;
+      // stage: 'both' 表示所有可玩阶段通用（如负债线）；day 窗口按所在阶段内序数计算
+      const defStage = def.stage || 'newborn';
+      if (defStage !== 'both' && defStage !== stage.id) return false;
       const repeatReady = def.repeat && state.day - (state.repeatLast[def.id] ?? -99) >= def.repeat;
       if (state.doneAnchors[def.id] && !repeatReady) return false;
       return G.conditions.check(state, def.conditions)

@@ -320,7 +320,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     // ---------- 账本见红（负债危机线） ----------
     {
-      id: 'a_debt', kind: 'anchor', priority: 'main', day: [5, 27],
+      id: 'a_debt', kind: 'anchor', priority: 'main', day: [5, 27], stage: 'both',
       conditions: { moneyLte: -100 },
       title: '账本见红了',
       art: { pose: '婴儿', expr: '平静', outfit: '连体衣', scene: '家中·深夜' },
@@ -1478,6 +1478,336 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
           result: '园长用双语做了介绍，最后说："我们培养的是世界公民。"你在缴费单上签的字，比当年签购房合同还郑重。',
         },
       ],
+    },
+
+    // ============================================================
+    // 第四章 · 幼儿园（3 → 6 岁，按月推进）
+    // ============================================================
+
+    // ---------- 录取通知与学费单（含公办摇号） ----------
+    {
+      id: 'a_kg_enroll', kind: 'anchor', priority: 'main', day: [0, 1], stage: 'kindergarten',
+      title: '录取通知到了',
+      art: { pose: '幼儿', expr: '笑', outfit: '园服', scene: '幼儿园门口' },
+      make(state) {
+        const publicApplied = Boolean(state.flags['幼儿园·公办']);
+        const tierFlag = Object.keys(G.CONFIG.KG_TUITION).find((f) => state.flags[f]);
+        const tierName = (tierFlag || '幼儿园·公办').split('·')[1];
+        if (publicApplied && util.chance(0.3)) {
+          return {
+            text: '摇号结果出来了——**没中**。\n短信很客气："很遗憾，您的孩子未被录取。"你盯着这条十四个字看了三遍，然后开始给名单上的普惠园打电话。\n好在那家还有名额，学费从六百变成一千五。运气这件事，从幼儿园就开始了。',
+            choices: [
+              {
+                text: '接受现实，转普惠园',
+                effects: { unsetFlags: ['幼儿园·公办'], setFlags: { '幼儿园·普惠': '公办摇号落榜后的兜底' }, mama: -2 },
+                result: '缴费单换了一版，孩子的书包没换。你在朋友圈发了条"缘分未到"，配了个笑脸。',
+              },
+            ],
+          };
+        }
+        const feeText = { 公办: '每月六百，还能更香吗', 普惠: '每月一千五，限价内的踏实', 民办: '每月四千五，外教和兴趣班都在里面', 国际: '每月一万五，双语环境和一辆自行车钱' }[tierName] || '';
+        return {
+          text: `录取通知到了——${tierName}园。园服两套、被褥一套、名字贴五十枚。${publicApplied ? '摇号中了！你在家长群里谦虚地说"运气好"。' : ''}\n学费：${feeText}。从下个月起，它将准时出现在每一张工资条旁边。`,
+          choices: [
+            {
+              text: '采购入园装备，静待开学',
+              effects: { money: -400, spendKind: 'clothes', face: 1 },
+              result: '印着他名字的小书包挂在门后，他每天都要背一下——还不知道等待他的是什么。',
+            },
+          ],
+        };
+      },
+    },
+
+    // ---------- 开学第一天（分离焦虑结算） ----------
+    {
+      id: 'a_kg_first_day', kind: 'anchor', priority: 'main', day: [1, 2], stage: 'kindergarten',
+      title: '开学第一天',
+      art: { pose: '幼儿', expr: '大哭', outfit: '园服', scene: '幼儿园门口' },
+      make(state) {
+        const prepared = Boolean(state.flags['入园准备']);
+        const security = state.child.security;
+        let scene;
+        if (prepared && security >= 55) {
+          scene = '他背着小书包，在校门口回头看了你一眼，挥挥手，自己走了进去。\n你站在原地，准备好的一整套"分离焦虑话术"一句没用上。旁边一个孩子哭得撕心裂肺，你忽然有点不是滋味——他就这么……走了？';
+        } else if (security >= 45) {
+          scene = '他抓着你的衣角进了教室，眼圈红红的，但没有哭出声。老师说："放心，一般十分钟就好了。"\n你在校门口的早餐摊站了十分钟，像个刚失恋的人。';
+        } else {
+          scene = '从换鞋开始他就哭了，抱着你的腿，哭到打嗝。老师接过去的时候，他的哭声穿透了整条走廊。\n你躲在电线杆后面听了五分钟，被另外三个同样躲着的家长认了出来。';
+        }
+        return {
+          text: `${scene}\n（${prepared ? '入园准备做得早，这一天的剧本比预想的温柔。' : '没做准备——此刻你们都在现场学习什么叫"分离"。'}）`,
+          choices: [
+            {
+              text: '坚定告别，说到做到',
+              effects: { security: 2, nursingSkill: 1 },
+              result: '你说"下午四点，妈妈/爸爸第一个来接"，然后转身就走。四点差十分，你已经在门口了——这句承诺，你兑现了整整三年。',
+            },
+            {
+              text: '趁他不注意偷偷溜走',
+              effects: { security: -4, setFlags: { '安全感不足(早期)': state.child.security < 45 ? '出生就攒下的不安，被溜走加重了' : '开学第一天，你选择了消失' } },
+              result: '下午接他时，老师说他找了你一上午。他看着你的眼神里多了一层东西——从那天起，他学会了在分别时抓紧你。',
+            },
+            {
+              text: '请半天假，陪他适应',
+              effects: { energy: -1, security: 1 },
+              result: '你坐在教室后面的小椅子上，像个旁听生。第二天你没去，他也没哭——原来需要适应的不止是他。',
+            },
+          ],
+        };
+      },
+    },
+
+    // ---------- 第一兴趣班 ----------
+    {
+      id: 'a_interest_class', kind: 'anchor', priority: 'main', day: [4, 10], stage: 'kindergarten',
+      title: '第一个兴趣班',
+      art: { pose: '幼儿', expr: '专注', outfit: '运动装', scene: '商场' },
+      make(state) {
+        const girl = state.child.gender === 'girl';
+        const recs = girl
+          ? ['舞蹈（形体和气质，女宝标配）', '画画（安静坐得住，还能发朋友圈）']
+          : ['跆拳道（男孩子的精气神）', '乐高（空间思维，工程师的起点）'];
+        return {
+          text: `幼儿园门口的传单又厚了一沓。中班，是"兴趣班黄金期"——舞蹈、画画、跆拳道、乐高、轮滑……\n推荐最多的是：${recs.join('；')}。还有一个选项没人推荐：不报，先玩。`,
+          choices: [
+            {
+              text: `报热门款：${recs[0].split('（')[0]}`, cost: { money: 3600 },
+              effects: { money: -3600, spendKind: 'education', face: 2, setFlags: { '兴趣班': '家长的选择' } },
+              result: '一年 96 课时。第一节课他在教室里，你在玻璃窗外——像当年自己的父母一样，只是这次你拍了视频。',
+            },
+            {
+              text: '看他平时盯着什么，报他真正喜欢的',
+              cost: { money: 3600 },
+              effects: { money: -3600, spendKind: 'education', security: 2, setFlags: { '兴趣班': '他自己的选择' } },
+              result: '你蹲了一周观察：他在哪里停得最久。报的名可能冷门，但每次上课他跑得最快。\n（"影响而非控制"，从选兴趣班开始。）',
+            },
+            {
+              text: '不报，幼儿园放学就是放学',
+              effects: { mama: 2, face: -1 },
+              result: '放学后的操场、沙坑和晚饭前的动画片。有人说你心大，也有老师私下说：这样的孩子，眼睛是亮的。',
+            },
+          ],
+        };
+      },
+    },
+
+    // ---------- 撒谎链第二次发芽（化石级种子的逆转窗口） ----------
+    {
+      id: 'a_second_lie', kind: 'anchor', priority: 'main', day: [10, 16], stage: 'kindergarten',
+      title: '花瓶，和一只不在场的猫',
+      art: { pose: '幼儿', expr: '平静', outfit: '园服', scene: '家中' },
+      make(state) {
+        const hasLie = Boolean(state.flags['第一颗隐瞒种子']);
+        if (hasLie) {
+          return {
+            text: '"哐当——"\n客厅的花瓶碎了。他从沙发后面探出头，这次没有慌张，甚至先看了一眼碎片的分布：\n"是猫打翻的。"\n你们家没有猫。上个月起，猫寄养在外婆家。\n他的谎，比一年半前圆多了：有动机，有细节，有平静的眼神。这是「第一颗隐瞒种子」结出的第一批果实。',
+            choices: [
+              {
+                text: '当场戳穿，罚站想清楚',
+                effects: { security: -3, setFlags: { '谎言升级': '被罚出来的策略——下次会更小心' } },
+                result: '"猫在哪？"你问。他卡壳了两秒，眼神开始躲闪。罚站的十分钟里他哭了吗？没有。他在复盘哪里出了破绽。',
+              },
+              {
+                text: '平静地谈："猫不会打花瓶。但我不想骂你——你怕的到底是什么？"',
+                effects: {
+                  security: 3,
+                  unsetFlags: ['第一颗隐瞒种子'],
+                  setFlags: { '诚实被温柔对待': '一年半后的逆转：化石级种子被你亲手起了出来' },
+                  log: { text: '花瓶事件的那个晚上，他说出了"我怕你生气"。这一年半的第一句真话。', hl: true },
+                },
+                result: '他憋了很久，说："我怕你生气。"\n你们聊了花瓶，聊了害怕，聊了"说真话天不会塌"。化石级的种子也能逆转——但窗口不多了，这一次，你抓住了。',
+              },
+              {
+                text: '懒得追究，自己收拾了碎片',
+                effects: { setFlags: { '谎言升级': '谎言没有被看见，于是继续生长' }, marriage: -1 },
+                result: '你扫掉了碎片，也扫掉了一次对话。他回房间的时候脚步很轻——谎言第一次没有代价，这本身就是一个代价。',
+              },
+            ],
+          };
+        }
+        return {
+          text: '"哐当——"\n客厅的花瓶碎了。他站在碎片旁边，愣了几秒，然后自己走到你面前：\n"我打碎的。对不起。"\n上一次打翻牛奶，你温和地接住了他。这一次，他选择了先说真话——「诚实被温柔对待」的种子，发芽了。',
+          choices: [
+            {
+              text: '抱住他："人没事就好，我们一起收拾"',
+              effects: { security: 3, marriage: 2, log: { text: '打碎花瓶的那个傍晚，他主动说了"对不起"。你们蹲在地上捡碎片，像在捡别的什么。', hl: true } },
+              result: '他拿来扫帚的样子特别认真。诚实被奖励的次数多了，就会变成性格。',
+            },
+            {
+              text: '"承认错误很好。花瓶的钱，从零花钱里分期扣"',
+              cost: { money: 0 },
+              effects: { security: 1, setFlags: { '金钱观启蒙': '一只花瓶换来的第一课' } },
+              result: '他问："分期是什么？"你说："就是每周扣两块，扣到小学。"\n他认真地点头，从此对"多少钱"有了概念。',
+            },
+            {
+              text: '"主动承认是好孩子，但下次注意！"然后还是凶了两句',
+              effects: { security: -4, unsetFlags: ['诚实被温柔对待'], setFlags: { '第一颗隐瞒种子': '好孩子的心，凉了半截' } },
+              result: '"好孩子"和"凶两句"出现在同一分钟里。他低下头的瞬间，你亲手把一年半前种下的好种子，换了一颗坏的。',
+            },
+          ],
+        };
+      },
+    },
+
+    // ---------- 同学矛盾（主线版） ----------
+    {
+      id: 'a_classmate_conflict', kind: 'anchor', priority: 'main', day: [8, 20], stage: 'kindergarten',
+      title: '他在幼儿园被起外号了',
+      art: { pose: '幼儿', expr: '委屈', outfit: '园服', scene: '幼儿园' },
+      make(state) {
+        const chubby = Boolean(state.flags['小胖墩苗子']);
+        const nickname = chubby ? '"小胖墩"——体检表上那条冲高的曲线，成了别人的武器' : '"爱哭鬼"——因为他入园头两个月确实哭过';
+        return {
+          text: `接他放学的路上，他忽然说不想去幼儿园了。问了很久才说：有小朋友给他起外号，${nickname}。\n你握着他的小手，心里已经过了三遍气、理性和"该不该找老师"。`,
+          choices: [
+            {
+              text: '找老师沟通',
+              effects: { face: -1, security: 1, setFlags: { '社交初体验': '第一次冲突，大人出面解决的' } },
+              result: '老师处理得很快，两个小孩握手言和。第二天他们又玩到了一起——小孩的仇，保质期通常不超过一顿加餐。但你心里那口气，保质期长得多。',
+            },
+            {
+              text: '教他自己应对："下次看着他说，我不喜欢这个名字"',
+              cost: { energy: 1 },
+              effects: { energy: -1, security: 3, nursingSkill: 2, setFlags: { '社交初体验': '第一次冲突，自己学会应对的' } },
+              result: '你在家陪他演练了三遍。一周后他说："我说了，他们就不叫了。"\n晚上他睡着以后你想：这一课，比一百个兴趣班都值。',
+            },
+            {
+              text: '直接找对方家长',
+              effects: { face: 1, setFlags: { '社交初体验': '两家大人的战争，替他打的' } },
+              result: '对方家长道了歉，家长群里安静了三天。他从你和他爸爸/妈妈的通话里听懂了什么——下次再有事，他可能不说了。',
+            },
+          ],
+        };
+      },
+    },
+
+    // ---------- 老师约谈 ----------
+    {
+      id: 'a_teacher_talk', kind: 'anchor', priority: 'main', day: [12, 24], stage: 'kindergarten',
+      title: '老师请你聊聊',
+      art: { pose: '幼儿', expr: '平静', outfit: '园服', scene: '幼儿园' },
+      make(state) {
+        const active = ['social', 'demanding'].includes(state.child.temperament);
+        const topic = active
+          ? '"他特别聪明，就是坐不住。集体活动的时候，他总想按自己的来。"'
+          : '"他很乖，就是太安静了。分组活动从来不主动，我有点担心他的存在感。"';
+        return {
+          text: `放学时老师把你留下，语气客气："聊两句？"\n${topic}\n你点头如捣蒜，脑子里已经在放各种培训班广告。`,
+          choices: [
+            {
+              text: '回家针对性练：规则游戏/多约小朋友',
+              cost: { energy: 1 },
+              effects: { energy: -1, security: 2, nursingSkill: 2 },
+              result: active ? '木头人、抢椅子、轮流棋——规则在游戏里长进了身体。一个月后老师说："进步很大。"' : '每周约一次小朋友来家里。第三次，你听见他在卧室里咯咯地笑，声音大得陌生。',
+            },
+            {
+              text: '"老师您多担待，孩子有自己的节奏"',
+              effects: { mama: 1, face: -1 },
+              result: '老师笑了笑没再说什么。你也不确定自己是在保护他，还是在回避问题——当父母的大部分时刻，都是这种不确定。',
+            },
+            {
+              text: '报个专注力训练班，缺啥补啥',
+              cost: { money: 2800 },
+              effects: { money: -2800, spendKind: 'education', setFlags: { '焦虑父母': '老师一句"坐不住"，你听成了"输在起跑线"' } },
+              result: '八千八的感统课包，教室里全是同样焦虑的父母。孩子的表现没大变化——你的焦虑倒是有了去处。',
+            },
+          ],
+        };
+      },
+    },
+
+    // ---------- 六一表演 ----------
+    {
+      id: 'a_kg_performance', kind: 'anchor', priority: 'main', day: [18, 26], stage: 'kindergarten',
+      title: '六一，他站在台上',
+      art: { pose: '幼儿', expr: '笑', outfit: '演出服', scene: '礼堂' },
+      make(state) {
+        const social = state.child.temperament === 'social';
+        return {
+          text: social
+            ? '六一汇演，他站在第一排正中间——这是他自己争取来的位置，老师说他"天生属于舞台"。'
+            : '六一汇演，他站在第二排靠边——这是他抽签抽到的位置。排练了一个月，他在家跳了八十遍。',
+          choices: [
+            {
+              text: '举着手机录完全程',
+              effects: { face: 2, marriage: 1, log: { text: '六一汇演。他在台上认真到发抖的样子，你录了整整三段视频。', hl: true } },
+              result: '相册里多了 47 张照片和 3 段视频，张张糊的。发家族群的时候你选了九张最清晰的——奶奶连夜设成了屏保。',
+            },
+            {
+              text: '请假没去成，看回放',
+              effects: { security: -2, mama: -2 },
+              result: '加班/出差错过了现场。老师发的视频里，他每隔十几秒就往台下看一眼。\n那个位置本来是你的。',
+            },
+          ],
+        };
+      },
+    },
+
+    // ---------- 体检（4岁/5岁） ----------
+    {
+      id: 'a_growth_4y', kind: 'anchor', priority: 'side', day: [11, 12], stage: 'kindergarten',
+      title: '四岁体检',
+      art: { pose: '幼儿', expr: '平静', outfit: '园服', scene: '医院' },
+      make(state) { return G.makeToddlerCheck(state, '四岁'); },
+    },
+    {
+      id: 'a_growth_5y', kind: 'anchor', priority: 'side', day: [23, 24], stage: 'kindergarten',
+      title: '五岁体检',
+      art: { pose: '幼儿', expr: '平静', outfit: '园服', scene: '医院' },
+      make(state) { return G.makeToddlerCheck(state, '五岁'); },
+    },
+
+    // ---------- 幼小衔接焦虑 ----------
+    {
+      id: 'a_premath', kind: 'anchor', priority: 'main', day: [28, 33], stage: 'kindergarten',
+      title: '"人家都在学拼音了"',
+      art: { pose: '幼儿', expr: '专注', outfit: '园服', scene: '家中' },
+      text: '大班上学期过半，家长群的画风变了：识字量、二十以内加减法、拼音班、坐姿训练……\n"零基础入学=灾难现场"的文章转了一篇又一篇。老师私下说：其实都会教。但没有人敢停。',
+      choices: [
+        {
+          text: '报幼小衔接班，提前学',
+          cost: { money: 4000 },
+          effects: { money: -4000, spendKind: 'education', setFlags: { '幼小衔接·补习': '拼音和加减法，提前学完了' } },
+          result: '三个月学完了拼音。他确实会了——代价是对一年级的课堂，提前失去了新鲜感。',
+        },
+        {
+          text: '不提前学，只练习惯：作息、收拾、坐得住',
+          cost: { energy: 1 },
+          effects: { energy: -1, security: 2, setFlags: { '幼小衔接·习惯': '知识没抢跑，习惯练了半年' } },
+          result: '每天固定十分钟"自己的事情自己收"，睡前书包自己理。一年级老师最喜欢的就是这种孩子：进度可能落后两周，节奏完全跟得上。',
+        },
+        {
+          text: '什么都不做，让他玩完最后一年',
+          effects: { mama: 2, face: -2 },
+          result: '滑梯、沙坑、下河摸鱼（公园的假河）。童年最后一年，过成了童年的样子。至于一年级——到时候再说吧。',
+        },
+      ],
+    },
+
+    // ---------- 毕业（本章终章） ----------
+    {
+      id: 'a_kg_graduation', kind: 'anchor', priority: 'main', day: [34, 35], stage: 'kindergarten',
+      title: '幼儿园毕业了',
+      art: { pose: '幼儿', expr: '笑', outfit: '学士服', scene: '礼堂' },
+      make(state) {
+        const goodFriends = ((state.flags['社交初体验'] || {}).source || '').includes('自己学会');
+        return {
+          text: `毕业典礼上，他穿着小小的学士服，和班上的小朋友挨个合影。\n${goodFriends ? '那个曾经给他起外号又和好的小伙伴，哭着说要"一辈子做朋友"。' : '他挤在人群里笑着，学士帽有点歪。'}\n三年，一千多个日夜。门后那个小书包，换成了印着拼音的书包——小学的书包。\n（六年了。从产房到礼堂，你陪他走完了人生的第一段路。下一段路上，会有成绩单、家长会，和越来越多的、他自己的秘密。）`,
+          choices: [
+            {
+              text: '把毕业照和满月照放在一起',
+              effects: { marriage: 3, log: { text: '幼儿园毕业照旁边，摆上了当年的满月照。两张照片之间，隔着整整六年。', hl: true } },
+              result: '一个皱巴巴的红包襁褓，一个歪学士帽的少年。你把两张照片设成了手机壁纸——换个角度，这也是你的毕业照。',
+            },
+            {
+              text: '开始研究学区房和小学排名',
+              effects: { energy: -1, setFlags: { '焦虑父母': '毕业典礼当晚就开始研究学区' } },
+              result: '典礼还没散场，你的搜索记录已经换成了"XX小学 对口学区"。下一场军备竞赛的发令枪，是你自己按响的。',
+            },
+          ],
+        };
+      },
     },
   ];
   const ANCHOR_FOLLOWUPS = [
