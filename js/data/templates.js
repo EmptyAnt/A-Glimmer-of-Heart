@@ -1031,4 +1031,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       },
     },
   ];
+
+  // 导出内容池给事件编辑器的"数据池"面板（只读展示）
+  G.POOLS = { SHOP_ITEMS, DAILY_SCENES, COMPARE_POINTS, VISITORS, FOLK_QUOTES, SHOP_CHANNELS, COMPARE_SOURCES };
 })(GAME);

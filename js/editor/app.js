@@ -211,6 +211,94 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
   }
   document.querySelector('.ed-tabs [data-tab="flags"]').addEventListener('click', renderFlagsMap);
 
+  // ---------- 数据池（命运/消耗品/商品/价格/模板内容） ----------
+  function renderPools() {
+    const C = G.CONFIG;
+    const box = $('pools-report');
+    box.textContent = '';
+
+    const block = (title) => {
+      const b = el('div', 'sim-block');
+      b.appendChild(el('h3', null, title));
+      box.appendChild(b);
+      return b;
+    };
+    const table = (host, headers, rows) => {
+      const t = el('table', 'ed-table');
+      const thead = el('thead');
+      const hr = el('tr');
+      for (const h of headers) hr.appendChild(el('th', null, h));
+      thead.appendChild(hr);
+      t.appendChild(thead);
+      const tbody = el('tbody');
+      for (const row of rows) {
+        const tr = el('tr');
+        for (const cell of row) tr.appendChild(el('td', null, String(cell)));
+        tbody.appendChild(tr);
+      }
+      t.appendChild(tbody);
+      host.appendChild(t);
+      return t;
+    };
+    const fmt = (v) => `¥${Number(v).toLocaleString('zh-CN')}`;
+
+    // 1) 命运池：出生掷骰
+    const fate = block('命运池（出生掷骰，部分可选）');
+    table(fate, ['池', '档位', '参数', '提示语/描述'], [
+      ...C.CONSTITUTION_TIERS.map((t, i) => ['体质（隐藏·随机）', t.name, `发病率 ×${t.illnessMult} · 生长 ${t.growthMod >= 0 ? '+' : ''}${t.growthMod}g/日`, `${t.hint}｜抽取权重 ${C.CONSTITUTION_WEIGHTS[i]}%`]),
+      ...C.TEMPERAMENTS.map((t) => ['气质（隐藏·随机）', t.name, `权重 ${t.weight}%`, t.hint]),
+      ...C.TALENTS.map((t) => ['天赋（隐藏·随机·等权）', t.name, '—', t.hint]),
+      ...C.PARENT_AGES.map((t) => ['父母生育年龄（可选/随机）', t.name, `收入 ×${t.incomeMul} · 生病 ×${t.sickMul} · 产后状态 ${t.mamaStart >= 0 ? '+' : ''}${t.mamaStart}`, t.desc]),
+      ['出生月份 × 地域（可选/随机）', '12 个月 × 南/北', '驱动季节系统', '冬季没太阳晒黄疸；呼吸道冬 ×1.6、手足口 4-7/9-11 月 ×1.8、湿疹夏冬双高发'],
+    ]);
+
+    // 2) 消耗品与学费（周期性开销）
+    const subs = block('周期开销：消耗品档位与学费（按周/月自动扣）');
+    const diaper = C.CONSUMABLES.diaper, formula = C.CONSUMABLES.formula;
+    table(subs, ['项目', '经济档', '主流档', '高端档', '说明'], [
+      [`${diaper.name}（周）`, ...diaper.tiers.map((t) => fmt(t.weekly)), '经济款红臀发病率约为高端款 ×8'],
+      [`${formula.name}（周，奶粉/混合喂养）`, ...formula.tiers.map((t) => fmt(t.weekly)), '混合喂养减半；母乳为 0'],
+      ['托育机构（周，婴儿期）', '—', fmt(C.CARE_WEEKLY_COST.daycare), '—', '交叉感染 ×2.2，婴儿期后停收'],
+      ['住家阿姨（周，婴儿期）', '—', fmt(C.CARE_WEEKLY_COST.nanny), '—', '婴儿期后停收'],
+      ...Object.entries(C.KG_TUITION).map(([flag, fee]) => [flag.split('·')[1] + '（月）', '—', fmt(fee), '—', flag.includes('公办') ? '入园第 25 个月起（大班）免保教费——2025 新政' : '']),
+    ]);
+
+    // 3) 商品池（购物事件货池）
+    const shop = block(`商品池（消费主义轰炸事件，共 ${G.POOLS.SHOP_ITEMS.length} 项）`);
+    table(shop, ['商品', '价格', '阶段', '性别推送', '记账分类', '卖点摘录'], G.POOLS.SHOP_ITEMS.map((item) => [
+      item.name, fmt(item.price), item.stage || 'newborn',
+      item.gender === 'girl' ? '女宝 ×2权重' : item.gender === 'boy' ? '男宝 ×2权重' : '通用',
+      C.SPEND_KINDS[item.kind] || item.kind, item.pitch.replace(/^"|"$/g, '').slice(0, 30) + '…',
+    ]));
+
+    // 4) 固定价格表
+    const prices = block('固定价格表（PRICES）与未来章节基准');
+    table(prices, ['键', '价格', '用途'], [
+      ...Object.entries(C.PRICES).map(([k, v]) => [k, fmt(v), {
+        yueziCenter: '顶级月子中心', yuesao: '住家育儿嫂（月）', naming: '大师取名', nurseVisit: '社区护士上门',
+        lanGuang: '黄疸蓝光住院', lanGuangRetry: '黄疸复发转院', clinic: '普通门诊', feverER: '夜间急诊',
+        expert: '专家号', partyBig: '满月酒大办', partySmall: '至亲小聚', swimCard: '婴儿游泳年卡',
+        sterilizer: '奶瓶消毒柜', hairPen: '胎毛笔+金锁',
+      }[k] || '—']),
+      ...C.FUTURE_TIERS.kindergarten.map((t) => ['幼儿园基准·' + t.name, `${fmt(t.monthly)}/月`, '未来章节参考（2025 公开收费数据）']),
+    ]);
+
+    // 5) 模板内容池
+    const content = block('模板内容池（日常事件的参数槽）');
+    const P = G.POOLS;
+    table(content, ['池', '条目', '阶段/条件'], [
+      ...P.DAILY_SCENES.map((s) => ['育儿日常·场景', s.name, s.stage || 'newborn']),
+      ...P.COMPARE_POINTS.map((p) => ['别人家的孩子·语录', p.t.slice(0, 24) + '…', p.stage]),
+      ...P.VISITORS.flatMap((v) => [['亲友探视·人物', `${v.name}（${v.rel === 'po' ? '婆系' : v.rel === 'ma' ? '娘家' : '邻里'}）`, `语录 ${v.quotes.length} 条`]]),
+      ...P.FOLK_QUOTES.map((f) => ['旧习俗语录', `「${f.folk}」`, '婆系专属 · 20~30% 概率触发']),
+    ]);
+    const tail = el('div', 'sub');
+    tail.style.marginTop = '8px';
+    tail.textContent = `还有：夜哭原因 ×4（隐藏）× 应对 ×4（气质加权）· 家长群场景 ×3 · 作业场景 ×5 · 隔代冲突 ×3 —— 这些在各自模板的 make() 内部生成，见"事件库"Tab 对应家族详情。`;
+    content.appendChild(tail);
+  }
+  document.querySelector('.ed-tabs [data-tab="pools"]').addEventListener('click', renderPools);
+
   // ---------- 模拟看板 ----------
   let simStop = false;
   $('btn-sim').addEventListener('click', () => {

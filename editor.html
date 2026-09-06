@@ -16,6 +16,7 @@
       <button class="tab-btn active" data-tab="validate">校验报告</button>
       <button class="tab-btn" data-tab="library">事件库</button>
       <button class="tab-btn" data-tab="flags">Flag收敛图</button>
+      <button class="tab-btn" data-tab="pools">数据池</button>
       <button class="tab-btn" data-tab="sim">模拟看板</button>
     </nav>
   </header>
@@ -56,6 +57,14 @@
       <span class="sub">每个 flag：谁设置它（来源/收敛路径）· 谁消费它（条件引用）· 是否注册</span>
     </div>
     <div id="flags-table" class="ed-table-wrap"></div>
+  </section>
+
+  <!-- 数据池 -->
+  <section id="tab-pools" class="ed-page hidden">
+    <div class="ed-toolbar">
+      <span class="sub">命运池（出生掷骰）· 消耗品与学费 · 商品价格池 · 固定价格表 · 模板内容池 —— 全部配置数据的只读总览</span>
+    </div>
+    <div id="pools-report" class="ed-split-v"></div>
   </section>
 
   <!-- 模拟看板 -->
