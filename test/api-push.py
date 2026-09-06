@@ -15,7 +15,7 @@ def git(*args):
     return subprocess.run(['git'] + list(args), capture_output=True, check=True).stdout.decode('utf-8').strip()
 
 
-REPO = git('remote', 'get-url', 'origin').rstrip('.git').split('github.com/')[1].rstrip('/')
+REPO = git('remote', 'get-url', 'origin').strip().removeprefix('https://github.com/').removesuffix('.git')
 BRANCH = git('rev-parse', '--abbrev-ref', 'HEAD')
 TOKEN = []  # token 只在内存中流转，不打印不落盘
 
