@@ -104,7 +104,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       el('span', null, `${state.child.weight}kg（${gained >= 0 ? '+' : ''}${gained}g）`),
     );
     childBox.appendChild(el('div', 'stat-row', null)).append(
-      el('span', null, '身长'), el('span', null, `${state.child.length}cm`),
+      el('span', null, '身长'), el('span', null, `${state.child.length.toFixed(1)}cm`),
     );
     childBox.appendChild(el('div', 'stat-row', null)).append(
       el('span', null, '体重百分位'),
@@ -385,12 +385,12 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
   function renderEnd(container, report, onRestart) {
     container.textContent = '';
     const box = el('div', 'end-box');
-    box.appendChild(el('h1', null, '十二岁了'));
-    box.appendChild(el('div', 'sub center', '—— 从呱呱坠地，到小学毕业 ——'));
+    box.appendChild(el('h1', null, '十五岁了'));
+    box.appendChild(el('div', 'sub center', '—— 从呱呱坠地，到中考放榜 ——'));
 
     const body = el('div', 'end-section');
     body.appendChild(el('h2', null, '满月体检报告'));
-    body.appendChild(el('div', null, `体重 ${report.weight}kg（${util.fmtPct(report.weightP)}）｜身长 ${report.length}cm（${util.fmtPct(report.lengthP)}）`));
+    body.appendChild(el('div', null, `体重 ${report.weight}kg（${util.fmtPct(report.weightP)}）｜身长 ${report.length.toFixed(1)}cm（${util.fmtPct(report.lengthP)}）`));
     body.appendChild(el('div', null, `这个月你大概也猜到了：这是个「${report.constitution}」的孩子。`));
     if (report.talent) {
       body.appendChild(el('div', null, `他的天赋是「${report.talent.name}」——${report.talent.hint}。`));

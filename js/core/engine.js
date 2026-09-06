@@ -22,17 +22,22 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     return CONFIG.STAGES.reduce((sum, s) => sum + (s.ticks || 0), 0);
   }
 
-  // 本周消耗品开销：尿不湿/奶粉按档位（母乳=0，混合=半量）。
+  // 本周消耗品开销，按年龄换挡：尿不湿 3 岁停（如厕训练后）、奶粉 6 岁降为鲜奶+文具杂费。
   // 托育/阿姨的周费只在婴儿期收——幼儿园期由学费接管（见月度结算）。
   function weeklyConsumableCost(state) {
-    const diaperCfg = CONFIG.CONSUMABLES.diaper;
-    const diaperTier = diaperCfg.tiers.find((t) => t.id === (state.consumables.diaper || diaperCfg.default));
-    let cost = diaperTier.weekly;
-    if (state.child.feedingMode === 'nai' || state.child.feedingMode === 'mix') {
+    const age = state.ageDays;
+    let cost = 0;
+    if (age <= 1095) {
+      const diaperCfg = CONFIG.CONSUMABLES.diaper;
+      const diaperTier = diaperCfg.tiers.find((t) => t.id === (state.consumables.diaper || diaperCfg.default));
+      cost += diaperTier.weekly;
+    }
+    if (age <= 2190 && (state.child.feedingMode === 'nai' || state.child.feedingMode === 'mix')) {
       const formulaCfg = CONFIG.CONSUMABLES.formula;
       const formulaTier = formulaCfg.tiers.find((t) => t.id === (state.consumables.formula || formulaCfg.default));
       cost += state.child.feedingMode === 'mix' ? Math.round(formulaTier.weekly / 2) : formulaTier.weekly;
     }
+    if (age > 2190) cost += 60; // 6岁后：鲜奶、文具与学习杂费
     if (G.engine.stageOf(state.day).id === 'infant') cost += CONFIG.CARE_WEEKLY_COST[state.family.careMode] || 0;
     return cost;
   }
