@@ -167,6 +167,8 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       perspective: state.perspective,
       gender: state.child.gender,
       stage: state.stage,
+      birth: { month: state.birthMonth, region: state.region },
+      talent: CONFIG.TALENTS.find((t) => t.id === state.child.talent),
       spend: state.stats.spend,
       weightP: Math.round(wp),
       lengthP: Math.round(G.growth.lengthPercentile(state)),

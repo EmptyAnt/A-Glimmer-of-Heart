@@ -145,8 +145,10 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
   ];
 
   function makeVisitor(state) {
-    const useFolk = util.chance(0.3);
-    // 旧规矩只会从婆系长辈嘴里说出来——也是这类矛盾的常见现实
+    // 三档事件：卫生(0.2) / 旧规矩(0.3) / 日常语录
+    const roll = Math.random();
+    const useHygiene = roll < 0.2;
+    const useFolk = !useHygiene && roll < 0.5;
     const pool = useFolk ? VISITORS.filter((v) => v.rel === 'po') : VISITORS;
     const who = util.weighted(pool, pool.map((v) => v.w(state)));
     // 妈妈视角下，娘家人不再叫"丈母娘"
@@ -154,6 +156,33 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     const gift = util.chance(0.25) ? util.randInt(200, 600) : 0;
     const giftSuffix = gift > 0 ? `\n临走时塞了个红包：${util.fmtMoney(gift)}。` : '';
     const visitorPlus = { visitorCount: 1, ...(gift ? { money: gift } : {}) };
+
+    if (useHygiene) {
+      const hands = util.pick(['刚按过门铃', '刚扶过楼道扶手', '刚拍了拍自家的狗', '正在剥橘子', '刚掏完手机']);
+      return {
+        title: `${whoName}伸手要抱他`,
+        art: { pose: state.day <= 13 ? '新生儿' : '婴儿', expr: '熟睡', outfit: '连体衣', scene: '家中' },
+        text: `${whoName}一进门就直奔婴儿床，两只手${hands}，伸过来就要抱。\n那双手离孩子还有三十公分。护士说过的话在你耳边循环播放：回家的人，先洗手。`,
+        choices: [
+          {
+            text: '"先洗手！护士特别交代的"',
+            effects: { ...visitorPlus, security: 1, nursingSkill: 1, inLaw: who.rel === 'po' ? -2 : 0 },
+            result: `${whoName}愣了半秒，笑着说"对对对，应该的"，转身进了卫生间。出来的时候手洗得发红——顺便把手机也用酒精棉擦了一遍。${whoName === '你妈' ? '亲妈的执行力，永远超出预期。' : ''}${giftSuffix}`,
+          },
+          {
+            text: '不好意思开口，事后默默消毒了一圈',
+            effects: { ...visitorPlus, security: -1, mama: -1 },
+            result: `抱完了，聊完了，人走了。你抱着孩子在屋里转了三圈，把TA碰过的东西全擦了一遍。有些话没说出口，就自己多干点活。${giftSuffix}`,
+          },
+          {
+            text: '递上免洗洗手液："来，消个毒～"',
+            cost: { money: 30 },
+            effects: { ...visitorPlus, face: 1, inLaw: 1 },
+            result: `你把免洗洗手液递过去的动作行云流水，谁都不尴尬。${whoName}搓着手夸你想得周到——三十块钱，买了一场体面。${giftSuffix}`,
+          },
+        ],
+      };
+    }
 
     if (useFolk) {
       const fq = util.pick(FOLK_QUOTES);
@@ -583,7 +612,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         return {
           title: '凌晨，哭声又响了',
           art: { pose: state.day <= 13 ? '新生儿' : '婴儿', expr: '大哭', outfit: '连体衣', scene: '家中·凌晨' },
-          text: `夜里的哭声又准时响起。你摸过去检查：${outcome.hint}\n到底是为什么，没有人告诉你。你只能猜。`,
+          text: `夜里的哭声又准时响起。你摸过去检查：${outcome.hint}\n到底是为什么，没有人告诉你。你只能猜。` + (G.util.seasonOf(state) === 'winter' ? '\n（冬天的凌晨，客厅冷得像个冰柜——你把睡衣裹紧了一点再去抱他。）' : ''),
           choices: choices.map((c) => ({
             text: c.text,
             effects: c.outcome.effects,
@@ -705,7 +734,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
           },
           {
             topic: '穿太多',
-            text: '"摸着后脖颈是凉的，加一件！"老人一边说一边又套了件马甲。你摸了摸——他在冒汗。',
+            text: '"摸着后脖颈是凉的，加一件！"老人一边说一边又套了件马甲。你摸了摸——他在冒汗。' + (G.util.seasonOf(state) === 'winter' ? '\n（顺便说一句：今天室外零下二度。这场辩论，你先天不占理——但"冷"和"捂出汗"，从来是两回事。）' : ''),
             choices: [
               { text: '脱！捂出热疹更麻烦', effects: { inLaw: -3, security: 1 }, result: '你把马甲脱了，老人把脸转过去了。室温26度，两代人之间的温度差了十度。' },
               { text: '随老人去吧，别为一个马甲吵架', effects: {}, result: '他捂出了一身红点点，老人心疼得直自责。你什么也没说——有些道理，要用红点点讲。' },

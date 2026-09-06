@@ -120,6 +120,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     );
     const chips = el('div', 'chips');
     chips.appendChild(el('span', 'chip', state.child.gender === 'girl' ? '女宝' : '男宝'));
+    chips.appendChild(el('span', 'chip', `${state.birthMonth}月生 · ${state.region === 'north' ? '北方' : '南方'}`));
     const feeding = { mu: '母乳', nai: '奶粉', mix: '混合喂养' }[state.child.feedingMode];
     if (feeding) chips.appendChild(el('span', 'chip', feeding));
     for (const flagId of Object.keys(state.flags)) {
@@ -308,7 +309,14 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     const child = state.child;
     const card = el('div', 'birth-card');
     const genderText = child.gender === 'boy' ? '是个儿子' : '是个女儿';
+    const SEASON_FLAVOR = {
+      winter: '窗外正是最冷的时候。他人生第一个月，将在暖气房里度过。',
+      spring: '窗外的玉兰开了。他人生第一个月，有整个春天作背景。',
+      summer: '蝉声正盛。他人生第一个月，空调和痱子粉将并肩作战。',
+      autumn: '秋高气爽。他人生第一个月，将从一件薄抱被开始。',
+    };
     card.appendChild(el('h2', null, `${state.names.papa} & ${state.names.mama}：${genderText}。`));
+    card.appendChild(el('div', 'sub', `${state.birthMonth} 月 · ${state.region === 'north' ? '北方' : '南方'}出生。${SEASON_FLAVOR[G.util.seasonOf({ birthMonth: state.birthMonth, ageDays: 0 })]}`));
     const stats = el('div', 'birth-stats');
     for (const [label, value] of [['出生体重', `${child.birthWeight} kg`], ['出生身长', `${child.birthLength} cm`], ['体重百分位', util.fmtPct(G.growth.weightPercentile({ ...state, ageDays: 0, child: { ...child, weight: child.birthWeight, length: child.birthLength } }))]]) {
       const col = el('div');
@@ -340,6 +348,10 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     body.appendChild(el('h2', null, '满月体检报告'));
     body.appendChild(el('div', null, `体重 ${report.weight}kg（${util.fmtPct(report.weightP)}）｜身长 ${report.length}cm（${util.fmtPct(report.lengthP)}）`));
     body.appendChild(el('div', null, `这个月你大概也猜到了：这是个「${report.constitution}」的孩子。`));
+    if (report.talent) {
+      body.appendChild(el('div', null, `他的天赋是「${report.talent.name}」——${report.talent.hint}。`));
+      body.appendChild(el('div', 'sub', '天赋没有好坏，只有赛道。它将在小学的兴趣、初中的分流、高考的志愿里，一次次被兑现。'));
+    }
     body.appendChild(el('div', null, `而他的气质是「${report.temperament}」——${report.temperamentHint}`));
     box.appendChild(body);
 

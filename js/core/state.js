@@ -15,6 +15,14 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       CONFIG.TEMPERAMENTS.map((t) => t.id),
       CONFIG.TEMPERAMENTS.map((t) => t.weight),
     );
+    // 天赋六型：等权随机，全程隐藏，靠事件显形——将来教育分流的核心输入
+    const talent = util.weighted(
+      CONFIG.TALENTS.map((t) => t.id),
+      CONFIG.TALENTS.map(() => 1),
+    );
+    // 出生月份与地域：季节系统的种子（黄疸有没有太阳、冬天穿太多之争谁占理）
+    const birthMonth = util.randInt(1, 12);
+    const region = util.chance(0.5) ? 'north' : 'south';
 
     // 出生体重：正态近似 + 8% 低体重；低体重会影响黄疸概率与初始体质观感
     let birthWeight = (gender === 'boy' ? 3.3 : 3.2) + (util.rand(-1, 1) * 0.45);
@@ -22,7 +30,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     birthWeight = Math.round(util.clamp(birthWeight, 2.3, 4.3) * 100) / 100;
     const birthLength = Math.round(((gender === 'boy' ? 50.5 : 49.8) + util.rand(-1.6, 1.6)) * 10) / 10;
 
-    return { gender, constitution, temperament, birthWeight, birthLength };
+    return { gender, constitution, temperament, talent, birthMonth, region, birthWeight, birthLength };
   }
 
   function createGame(opts) {
@@ -39,6 +47,8 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       ended: false,
       stage: 'newborn', // 人生阶段：驱动界面主题色切换
       perspective,
+      birthMonth: birth.birthMonth, // 出生月份（1-12）：季节系统的种子
+      region: birth.region, // 'north' | 'south'
       names: { papa: opts.papaName, mama: opts.mamaName },
       family: {
         preset: preset.id,

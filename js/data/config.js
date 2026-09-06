@@ -131,6 +131,24 @@ GAME.CONFIG = {
     ],
   },
 
+  // 天赋六型：出生随机、对玩家隐藏，通过抓周/兴趣班/日常逐章显形。
+  // 没有好坏——它决定的是"哪条路走得顺"，不是"人生的高低"。
+  TALENTS: [
+    { id: 'verbal', name: '语言', hint: '开口早、用词准，连谎言都撒得比人圆' },
+    { id: 'logic', name: '逻辑', hint: '积木必须按颜色分类，问题能问到你想查手机' },
+    { id: 'art', name: '艺术', hint: '一支笔画一下午，唱歌走调但声情并茂' },
+    { id: 'sport', name: '运动', hint: '大运动样样提前，沙发就是他的珠峰' },
+    { id: 'empathy', name: '共情', hint: '谁不高兴他第一个发现，会把玩具分给哭的人' },
+    { id: 'handson', name: '动手', hint: '拆掉一切能拆的，包括你的手机' },
+  ],
+
+  // 疾病季节乘数（依据儿科流行规律：呼吸道冬春高发、手足口4-7月+9-11月双峰、湿疹夏冬双高发）
+  SEASON_ILLNESS: {
+    cold: { winter: 1.6 },
+    hfmd: { spring: 1.8, summer: 1.8, autumn: 1.5 },
+    eczema: { summer: 1.4, winter: 1.3 },
+  },
+
   PRICES: {
     yueziCenter: 68000,    // 顶级月子中心
     yuesao: 13000,         // 住家育儿嫂（月）
@@ -169,6 +187,18 @@ GAME.util = {
     return items[items.length - 1];
   },
   clamp(v, min, max) { return Math.max(min, Math.min(max, v)); },
+  // 当前公历月（1-12）：出生月 + 已过月龄
+  monthOf(state) {
+    return ((state.birthMonth - 1 + Math.floor(state.ageDays / 30)) % 12) + 1;
+  },
+  // 当前季节：'spring' | 'summer' | 'autumn' | 'winter'
+  seasonOf(state) {
+    const m = GAME.util.monthOf(state);
+    if (m >= 3 && m <= 5) return 'spring';
+    if (m >= 6 && m <= 8) return 'summer';
+    if (m >= 9 && m <= 11) return 'autumn';
+    return 'winter';
+  },
   fmtMoney(v) {
     const sign = v < 0 ? '-' : '';
     return sign + '¥' + Math.abs(Math.round(v)).toLocaleString('zh-CN');

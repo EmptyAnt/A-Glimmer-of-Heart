@@ -6,6 +6,12 @@ var GAME = globalThis.GAME || (globalThis.GAME || (globalThis.GAME = {}));
 (function (G) {
   const { chance, randInt } = G.util;
 
+  // 季节流行乘数：SEASON_ILLNESS[疾病名][当前季节]（依据儿科流行规律）
+  function seasonMult(name, state) {
+    const table = G.CONFIG.SEASON_ILLNESS[name] || {};
+    return table[G.util.seasonOf(state)] || 1;
+  }
+
   // 月子前两周是"新生儿"体态，之后是"婴儿"
   function poseOf(state) {
     return state.day <= 13 ? '新生儿' : '婴儿';
@@ -18,7 +24,7 @@ var GAME = globalThis.GAME || (globalThis.GAME || (globalThis.GAME = {}));
       stage: 'newborn',
       canTrigger: () => true,
       dailyProb(state) {
-        return 0.02 * G.CONFIG.CONSTITUTION_TIERS[state.child.constitution].illnessMult;
+        return 0.02 * seasonMult('eczema', state) * G.CONFIG.CONSTITUTION_TIERS[state.child.constitution].illnessMult;
       },
       make(state) {
         const folkWin = chance(0.5);
@@ -250,7 +256,7 @@ var GAME = globalThis.GAME || (globalThis.GAME || (globalThis.GAME = {}));
       dailyProb(state) {
         // 集体生活交叉感染：托育期 daycare / 幼儿园全阶段 ×2.2
         const groupMult = state.family.careMode === 'daycare' || G.engine.stageOf(state.day).id === 'kindergarten' ? 2.2 : 1;
-        return 0.012 * groupMult * G.CONFIG.CONSTITUTION_TIERS[state.child.constitution].illnessMult;
+        return 0.012 * groupMult * seasonMult('cold', state) * G.CONFIG.CONSTITUTION_TIERS[state.child.constitution].illnessMult;
       },
       make(state) {
         const inDaycare = state.family.careMode === 'daycare';
@@ -319,7 +325,7 @@ var GAME = globalThis.GAME || (globalThis.GAME || (globalThis.GAME = {}));
       canTrigger: () => true,
       dailyProb(state) {
         const socialMult = state.family.careMode === 'daycare' ? 1.8 : 1;
-        return 0.01 * socialMult * G.CONFIG.CONSTITUTION_TIERS[state.child.constitution].illnessMult;
+        return 0.01 * socialMult * seasonMult('hfmd', state) * G.CONFIG.CONSTITUTION_TIERS[state.child.constitution].illnessMult;
       },
       make(state) {
         const inDaycare = state.family.careMode === 'daycare';

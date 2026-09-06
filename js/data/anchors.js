@@ -214,8 +214,11 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
           moderate: '社区上门测黄疸，数值偏高，黄已经从脸蔓延到胸口。医生建议：每天来测，最好住院照蓝光。',
           severe: '经皮胆红素明显超标，医生直接开了单子："别回去了，现在就办住院，照蓝光。"',
         };
-        const observeChance = { mild: 0.12, moderate: 0.5, severe: 0.85 }[severity];
-        const folkChance = { mild: 0.3, moderate: 0.68, severe: 0.95 }[severity];
+        // 季节判定：黄疸发生在出生头几天，直接看出生月。冬春出生（北方尤甚）——没太阳可晒
+        const sunPoor = [11, 12, 1, 2, 3].includes(state.birthMonth) && (state.region === 'north' || [12, 1, 2].includes(state.birthMonth));
+        const sunNote = sunPoor ? '\n（他出生在 ' + state.birthMonth + ' 月的' + (state.region === 'north' ? '北方' : '南方') + '——冬天的太阳，只是个态度。）' : '';
+        const observeChance = ({ mild: 0.12, moderate: 0.5, severe: 0.85 })[severity] + (sunPoor ? 0.08 : 0);
+        const folkChance = ({ mild: 0.3, moderate: 0.68, severe: 0.95 })[severity] + (sunPoor ? 0.08 : 0);
 
         const choices = [
           {
@@ -229,7 +232,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         ];
         if (severity !== 'severe') {
           choices.push({
-            text: '带回家，多吃多排，天天晒太阳观察',
+            text: '带回家，多吃多排，天天晒太阳观察' + sunNote,
             effects: {
               setFlags: { '黄疸观察中': '带回家观察的胆红素' },
               later: [{
@@ -237,10 +240,12 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
                 preview: '黄疸退不下去的话，观察就成了拖延。',
               }],
             },
-            result: '从此每天早上第一件事：拉开窗帘晒黄疸，喂奶，记录大便颜色。你在备忘录里建了个表格。',
+            result: sunPoor
+              ? '冬天的太阳指望不上，你抱着他在窗边坐了几天——紫外线隔着玻璃，本来就到不了皮肤。观察变成了一场对胆红素的祈祷。'
+              : '从此每天早上第一件事：拉开窗帘晒黄疸，喂奶，记录大便颜色。你在备忘录里建了个表格。',
           });
           choices.push({
-            text: '听婆婆的：葡萄糖水 + 金银花，退胎黄',
+            text: '听婆婆的：葡萄糖水 + 金银花，退胎黄' + sunNote,
             effects: {
               setFlags: { '黄疸观察中': '土方观察中', '黄疸土方': '葡萄糖水退黄' },
               later: [{
@@ -1076,6 +1081,11 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       art: { pose: '婴儿', expr: '笑', outfit: '礼服', scene: '家中' },
       make(state) {
         const c = state.child;
+        // 天赋加权：抓周是一场被命运加了权的随机——他天生会往某个方向多看两眼
+        const talentPick = {
+          verbal: ['一本书', '麦克风'], logic: ['算盘', '鼠标'], art: ['一支画笔'],
+          sport: ['小球'], empathy: ['听诊器'], handson: ['鼠标', '印章'],
+        }[c.talent] || [];
         const pool = [
           { name: '算盘', hint: '跟钱有缘', w: 2 },
           { name: '听诊器', hint: '白衣天使的兆头', w: c.constitution <= 1 ? 3 : 2 },
@@ -1084,11 +1094,13 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
           { name: '小球', hint: '运动健将的坯子', w: c.constitution >= 3 ? 4 : 2 },
           { name: '鼠标', hint: '以后要对着屏幕吃饭', w: 3 },
           { name: '印章', hint: '体制内的好苗子', w: 3 },
-        ];
+          { name: '一支画笔', hint: '下一个画画的人', w: 2 },
+        ].map((p) => (talentPick.includes(p.name) ? { ...p, w: p.w * 3 } : p));
         const picked = util.weighted(pool.map((p) => p.name), pool.map((p) => p.w));
+        const isFate = talentPick.includes(picked);
         const hint = pool.find((p) => p.name === picked).hint;
         return {
-          text: `一周岁生日。蛋糕上的蜡烛是他这辈子见过的第一根火苗。\n红布上摆开物件，全家人屏住呼吸——他爬过去，一把抓住了【${picked}】。\n"${hint}。"老人喜笑颜开地下了结论。你半信半疑，掏出手机拍了张照。`,
+          text: `一周岁生日。蛋糕上的蜡烛是他这辈子见过的第一根火苗。\n红布上摆开物件，全家人屏住呼吸——他爬过去，一把抓住了【${picked}】。${isFate ? '抓得那样紧，抱在怀里不撒手。' : ''}\n"${hint}。"老人喜笑颜开地下了结论。你半信半疑，掏出手机拍了张照。`,
           choices: [
             {
               text: '"好兆头！顺势培养起来"',
@@ -1568,18 +1580,24 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         const recs = girl
           ? ['舞蹈（形体和气质，女宝标配）', '画画（安静坐得住，还能发朋友圈）']
           : ['跆拳道（男孩子的精气神）', '乐高（空间思维，工程师的起点）'];
+        // 天赋与方向的匹配：同一个兴趣班，命中天赋的孩子和没命中的孩子，是两种体验
+        const classTalent = { 画画: 'art', 跆拳道: 'sport', 舞蹈: 'art', 乐高: 'logic' };
+        const hotClass = recs[0].split('（')[0];
+        const hotMatches = classTalent[hotClass] === state.child.talent;
         return {
           text: `幼儿园门口的传单又厚了一沓。中班，是"兴趣班黄金期"——舞蹈、画画、跆拳道、乐高、轮滑……\n推荐最多的是：${recs.join('；')}。还有一个选项没人推荐：不报，先玩。`,
           choices: [
             {
               text: `报热门款：${recs[0].split('（')[0]}`, cost: { money: 3600 },
-              effects: { money: -3600, spendKind: 'education', face: 2, setFlags: { '兴趣班': '家长的选择' } },
-              result: '一年 96 课时。第一节课他在教室里，你在玻璃窗外——像当年自己的父母一样，只是这次你拍了视频。',
+              effects: { money: -3600, spendKind: 'education', face: 2, security: hotMatches ? 1 : 0, setFlags: { '兴趣班': hotMatches ? '家长的选择——碰巧选对了' : '家长的选择' } },
+              result: hotMatches
+                ? '一年 96 课时。第三节课老师私下说："这孩子上手上得有点快——不像纯练出来的。"你在玻璃窗外，忽然觉得这份钱花得值。'
+                : '一年 96 课时。第一节课他在教室里，你在玻璃窗外——像当年自己的父母一样，只是这次你拍了视频。',
             },
             {
               text: '看他平时盯着什么，报他真正喜欢的',
               cost: { money: 3600 },
-              effects: { money: -3600, spendKind: 'education', security: 2, setFlags: { '兴趣班': '他自己的选择' } },
+              effects: { money: -3600, spendKind: 'education', security: 3, setFlags: { '兴趣班': '他自己的选择' } },
               result: '你蹲了一周观察：他在哪里停得最久。报的名可能冷门，但每次上课他跑得最快。\n（"影响而非控制"，从选兴趣班开始。）',
             },
             {
@@ -1601,7 +1619,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         const hasLie = Boolean(state.flags['第一颗隐瞒种子']);
         if (hasLie) {
           return {
-            text: '"哐当——"\n客厅的花瓶碎了。他从沙发后面探出头，这次没有慌张，甚至先看了一眼碎片的分布：\n"是猫打翻的。"\n你们家没有猫。上个月起，猫寄养在外婆家。\n他的谎，比一年半前圆多了：有动机，有细节，有平静的眼神。这是「第一颗隐瞒种子」结出的第一批果实。',
+            text: '"哐当——"\n客厅的花瓶碎了。他从沙发后面探出头，这次没有慌张，甚至先看了一眼碎片的分布：\n"是猫打翻的。"\n你们家没有猫。上个月起，猫寄养在外婆家。\n他的谎，比一年半前圆多了：有动机，有细节，有平静的眼神。这是「第一颗隐瞒种子」结出的第一批果实。' + (state.child.talent === 'verbal' ? '\n（你后来才知道：语言型的孩子，连谎言也是语言。）' : ''),
             choices: [
               {
                 text: '当场戳穿，罚站想清楚',
@@ -1724,10 +1742,18 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       art: { pose: '幼儿', expr: '笑', outfit: '演出服', scene: '礼堂' },
       make(state) {
         const social = state.child.temperament === 'social';
+        const talent = state.child.talent;
+        const talentLine = talent === 'art'
+          ? '领舞的位置，老师想了想，给了他。'
+          : talent === 'sport'
+            ? '他的动作是全班最标准的一个——连谢幕的鞠躬都是。'
+            : talent === 'verbal'
+              ? '报幕词他背得比谁都熟，虽然这轮还轮不到他报幕。'
+              : '';
         return {
-          text: social
+          text: (social
             ? '六一汇演，他站在第一排正中间——这是他自己争取来的位置，老师说他"天生属于舞台"。'
-            : '六一汇演，他站在第二排靠边——这是他抽签抽到的位置。排练了一个月，他在家跳了八十遍。',
+            : '六一汇演，他站在第二排靠边——这是他抽签抽到的位置。排练了一个月，他在家跳了八十遍。') + (talentLine ? '\n' + talentLine : ''),
           choices: [
             {
               text: '举着手机录完全程',
@@ -1792,8 +1818,10 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       art: { pose: '幼儿', expr: '笑', outfit: '学士服', scene: '礼堂' },
       make(state) {
         const goodFriends = ((state.flags['社交初体验'] || {}).source || '').includes('自己学会');
+        // 天赋揭示：六年养育，答案此刻摊开——这一行将来会被小学、中学、高考志愿反复引用
+        const talentMeta = G.CONFIG.TALENTS.find((t) => t.id === state.child.talent);
         return {
-          text: `毕业典礼上，他穿着小小的学士服，和班上的小朋友挨个合影。\n${goodFriends ? '那个曾经给他起外号又和好的小伙伴，哭着说要"一辈子做朋友"。' : '他挤在人群里笑着，学士帽有点歪。'}\n三年，一千多个日夜。门后那个小书包，换成了印着拼音的书包——小学的书包。\n（六年了。从产房到礼堂，你陪他走完了人生的第一段路。下一段路上，会有成绩单、家长会，和越来越多的、他自己的秘密。）`,
+          text: `毕业典礼上，他穿着小小的学士服，和班上的小朋友挨个合影。\n${goodFriends ? '那个曾经给他起外号又和好的小伙伴，哭着说要"一辈子做朋友"。' : '他挤在人群里笑着，学士帽有点歪。'}\n三年，一千多个日夜。门后那个小书包，换成了印着拼音的书包——小学的书包。\n（六年了。从产房到礼堂，你陪他走完了人生的第一段路。这些年你大概也看出来了：他在【${talentMeta.name}】上，有种旁若无人的专注——${talentMeta.hint}。\n下一段路上，会有成绩单、家长会，和越来越多的、他自己的秘密。）`,
           choices: [
             {
               text: '把毕业照和满月照放在一起',
