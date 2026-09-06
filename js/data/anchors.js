@@ -1837,6 +1837,534 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         };
       },
     },
+  // ============================================================
+  // 第五章 · 小学（6 → 12 岁，按学期月推进，暑假自动折叠）
+  // ============================================================
+
+  // ---------- 幼升小抉择 ----------
+  {
+    id: 'a_primary_enroll', kind: 'anchor', priority: 'main', day: [0, 1], stage: 'primary',
+    title: '幼升小，这道题',
+    art: { pose: '少年', expr: '平静', outfit: '书包', scene: '家中' },
+    text: '幼儿园毕业照还没塑封，幼升小的战场已经摆开了。\n对口小学：走路五分钟，学费全免——但听说一个班五十个人，老师管不过来。家长群里流传着一张神秘的"学校梯队表"，对口的那个名字，在第三档。',
+    choices: [
+      {
+        text: '接受对口，把省下的钱花在陪伴上',
+        effects: { mama: 2, marriage: 2 },
+        result: '报名表交得很快，你们是全校最早交的一批。晚上你们算了算：不买学区房省下的一百万，够全家每年旅行一次，一直到他十八岁。',
+      },
+      {
+        text: '挤民办小学（面谈+学费）', cost: { money: 80000 },
+        conditions: { moneyGte: 80000 },
+        effects: { money: -80000, spendKind: 'education', face: 2, setFlags: { '焦虑父母': '幼升小就报了民办' } },
+        result: '面谈那天他背了首古诗、数到一百、把积木搭成了桥。录取通知来的那天，全家在群里发了红包——你发出去的，比收回来的多。',
+      },
+      {
+        text: '咬牙买学区房', cost: { money: 600000 },
+        conditions: { moneyGte: 600000 },
+        effects: { money: -600000, spendKind: 'education', face: 4, setFlags: { '学区房': '一百万换一扇校门' } },
+        result: '中介说"这房子从来不为居住，只为报名表"。签字那天你的手很稳——回家的路上，你路过那所学校的围墙，往里看了很久。',
+      },
+    ],
+  },
+
+  // ---------- 一年级第一天 ----------
+  {
+    id: 'a_primary_first_day', kind: 'anchor', priority: 'main', day: [1, 2], stage: 'primary',
+    title: '一年级，第一天',
+    art: { pose: '少年', expr: '平静', outfit: '校服', scene: '小学门口' },
+    make(state) {
+      const prepared = state.flags['幼小衔接·习惯'];
+      const drilled = state.flags['幼小衔接·补习'];
+      const sec = state.child.security;
+      let scene;
+      if (prepared && sec >= 55) {
+        scene = '他背着书包走进教室，把文具按顺序摆好，坐下，等老师上课——像演练过一百遍一样自然。老师投来"这孩子省心"的眼神。';
+      } else if (drilled) {
+        scene = '拼音全会的他，第一节课就开始转铅笔。老师说"他都会了"，语气里有欣赏，也有一点别的什么。';
+      } else if (sec >= 45) {
+        scene = '他在校门口回头看了你一眼——没哭。放学接他的时候，他冲出来喊的第一句话是："妈妈/爸爸，小学有课间餐！"';
+      } else {
+        scene = '从进校门起他的眼圈就是红的，忍到了第二节课，还是哭了。老师发来照片：小小的一个人，坐在教室最后一排，背着书包不肯摘。';
+      }
+      return {
+        text: `${scene}\n（六年前产房外的那个你，现在站在小学门口。时间就是这样，一格一格，把你推到今天。）`,
+        choices: [
+          {
+            text: '每天接送，风雨无阻',
+            effects: { security: 2, energy: -1 },
+            result: '校门口的人群里，你们成了彼此的钟点。这一接，就是六年。',
+          },
+          {
+            text: '教会他自己过马路，慢慢放手',
+            effects: { security: 1, nursingSkill: 2 },
+            result: '第三周起他开始要求"走到小区门口就好"。你跟在后面二十米，他没回头——你既失落又骄傲。',
+          },
+        ],
+      };
+    },
+  },
+
+  // ---------- 拼音关 ----------
+  {
+    id: 'a_pinyin', kind: 'anchor', priority: 'main', day: [2, 6], stage: 'primary',
+    title: '拼音，第一道坎',
+    art: { pose: '少年', expr: '专注', outfit: '校服', scene: '家中·书桌' },
+    make(state) {
+      const talent = state.child.talent;
+      const flavor = talent === 'verbal'
+        ? '他念得又快又准，还纠正你"是翘舌，zh-ū-n，春"。这门课对他不是坎，是滑梯。'
+        : talent === 'logic'
+          ? '"为什么要用字母表示汉字的读音？"他问。你答不上来——他背是背下来了，但满脸"这个系统设计得不优雅"。'
+          : talent === 'art'
+            ? '他把 b 和 p 画成了两个小人在推门。"多可爱啊！"他说。可爱，但听写错了四个。'
+            : 'b、d、p、q 在他眼里是四胞胎。晚上听写，全家跟着一起复习。';
+      return {
+        text: `一年级的第一个月，全家都在上拼音课。\n${flavor}`,
+        choices: [
+          {
+            text: '亲子夜读 + 每日打卡',
+            cost: { energy: 1 },
+            effects: { energy: -1, habit: 3, security: 1, nursingSkill: 1 },
+            result: '四十天后，他捧着注音版《没头脑和不高兴》自己读完了第一页。你在这四十天里，把拼音表焊进了自己的梦里。',
+          },
+          {
+            text: '报个拼音冲刺班', cost: { money: 3000 },
+            effects: { money: -3000, spendKind: 'education', habit: 2 },
+            result: '两周强化，效果显著。老师在群里表扬了他——你截图发到了家族群，配文"慢慢来"。',
+          },
+          {
+            text: '不着急，老师后面还会再教',
+            effects: { mama: 1 },
+            result: '期中之前他自然跟上了。孩子的内存和大人不一样——有些东西，装进去只是需要多一点时间。',
+          },
+        ],
+      };
+    },
+  },
+
+  // ---------- 辅导作业之战 ----------
+  {
+    id: 'a_homework_war', kind: 'anchor', priority: 'main', day: [3, 10], stage: 'primary',
+    title: '晚上八点，作业桌',
+    art: { pose: '少年', expr: '委屈', outfit: '校服', scene: '家中·书桌' },
+    text: '"远上寒山石径斜——"你刚教完"斜"在这里读 xiá，第二天老师教读 xié。\n你查手机，度娘说：教材已改，读 xié。他看着你，眼神里没有胜利的喜悦，只有对大人世界的第一丝怀疑。\n晚上八点十五分。作业还剩口算一页、背诵一篇、预习两课。桌边的空气已经开始变稠。',
+    choices: [
+      {
+        text: '全程陪写，随叫随到',
+        cost: { energy: 2 },
+        effects: { energy: -2, habit: 5, security: 1 },
+        result: '一学期下来，他的字进步了，你的血压也进步了。班主任说他是全班"完成度最稳定"的孩子——没人知道这五个字背后，是三百多个八点钟。',
+      },
+      {
+        text: '作业托管班，专业的事交给专业的人', cost: { money: 3600 },
+        effects: { money: -3600, spendKind: 'education', habit: 3, mama: 2 },
+        result: '每天六点到八点，他在托管班写完作业再回家。饭桌重新变成了饭桌——这钱买的不是作业，是你们家的晚间和平。',
+      },
+      {
+        text: '自己的作业自己负责，写不完自己跟老师交代',
+        effects: { habit: -4, security: 1 },
+        result: '他被老师留堂两次之后，开始自己记作业了。习惯分低开高走——但代价是前两个月的成绩单不太好看。',
+      },
+    ],
+  },
+
+  // ---------- 成绩单签字（撒谎链第三次发芽） ----------
+  {
+    id: 'a_sign_report', kind: 'anchor', priority: 'main', day: [8, 12], stage: 'primary',
+    title: '一张需要签字的卷子',
+    art: { pose: '少年', expr: '平静', outfit: '校服', scene: '家中·书桌' },
+    make(state) {
+      const score = G.reportScore(state);
+      const hasHonest = Boolean(state.flags['诚实被温柔对待']);
+      const hasLie = Boolean(state.flags['第一颗隐瞒种子'] || state.flags['谎言升级']);
+
+      // 学霸线
+      if (score >= 85) {
+        return {
+          text: `期中卷子发下来了：${score} 分，全班第五。\n他冲进家门的速度比平时快了三成，卷子往桌上一拍："签字！"\n那个"签字"说得理直气壮——像出示战利品。`,
+          choices: [
+            {
+              text: '郑重签上名字："这是你应得的"',
+              effects: { security: 2, marriage: 1, log: { text: `期中 ${score} 分，全班第五。签字的那支笔，你换了一支新的。`, hl: true } },
+              result: '他把你签过字的卷子端端正正夹在书包最外层——第二天是要给同桌看的。有些骄傲，需要观众。',
+            },
+            {
+              text: '"第五？前面还有四个呢。"',
+              effects: { security: -3, setFlags: { '成绩焦虑': '全班第五也不够好' } },
+              result: '他的笑容停了两秒，说"哦"。然后把卷子折起来，塞进了书包最里层。\n那天晚饭他没怎么说话。你后来想起这个瞬间，会想起一个词：封存。',
+            },
+          ],
+        };
+      }
+
+      // 诚实线：主动递卷子
+      if (hasHonest && !hasLie) {
+        return {
+          text: `期中卷子发下来了：${score} 分，全班二十名开外。\n他把卷子在桌角放了很久，最后还是推了过来："这次没考好。老师说要签字。"\n他没有藏——六年前那只花瓶、那次温和的谈话，此刻正在发光。`,
+          choices: [
+            {
+              text: '"谢谢你告诉我。我们看看错在哪。"',
+              effects: { security: 3, habit: 2, marriage: 2 },
+              result: '你们把卷子摊开，一道题一道题地过。最后一道应用题的错因是"没读懂题"——你念了一遍题目，他"啊"了一声。\n签完字他说："下次我考好了，还第一个给你看。"',
+            },
+            {
+              text: '签字，但眉头皱了三秒',
+              effects: { security: -2, setFlags: { '成绩焦虑': '皱眉的三秒，他都看见了' } },
+              result: '你确实签了，也确实没说什么。但那三秒的沉默，比一顿骂更响。\n他把卷子收走的时候，走得很轻。诚实还在——只是开始收费了。',
+            },
+          ],
+        };
+      }
+
+      // 隐瞒线：伪造签名（撒谎链三发）
+      const caught = util.chance(0.6);
+      if (caught) {
+        return {
+          text: `期中成绩单需要家长签字。\n你没有等到那张卷子——等来的是老师的电话："家长您好，孩子的回执上……这个签名，是他自己签的吧？"\n卷子被拍照发来：${score} 分，全班倒数。卷子右下角，"家长签名"一栏里，赫然是你名字的模仿体——还描了两遍。`,
+          choices: [
+            {
+              text: '当场对质，严肃处理',
+              effects: { security: -4, face: -2, setFlags: { '谎言升级': '伪造签名被抓，信任降级' } },
+              result: '"你居然敢伪造我的签名！"这句话说出口的瞬间，他哭了，你也听见了自己声音里的颤抖。\n他记住的重点可能不是"诚实"，而是"下次别被抓住"。',
+            },
+            {
+              text: '平静地谈："我想知道，你为什么要模仿，而不是给我？"',
+              cost: { energy: 1 },
+              effects: {
+                energy: -1, security: 3,
+                unsetFlags: ['谎言升级', '第一颗隐瞒种子'],
+                setFlags: { '诚实被温柔对待': '签名事件的深夜大逆转' },
+                log: { text: '那个晚上他终于说："我怕你失望。"——距离打翻牛奶那晚，已经过去四年了。', hl: true },
+              },
+              result: '他憋了很久，说："我怕你失望。"\n你们谈了四十分钟——关于分数、关于害怕、关于"妈妈/爸爸失望也还是妈妈/爸爸"。\n这是撒谎链的最后一次逆转窗口。你抓住了。',
+            },
+            {
+              text: '跟老师说"是我签的"，私下再处理',
+              effects: { face: -1, setFlags: { '谎言升级': '你替他把谎圆上了' } },
+              result: '电话里你说了谎——以家长的身份，给孩子看。\n挂了电话你们对视了一眼，谁都没说话。这个家的诚实账户，双方各取了一笔。',
+            },
+          ],
+        };
+      }
+      // 没被发现
+      return {
+        text: `期中卷子发下来了：${score} 分。\n你没见过这张卷子——它绕过了你的签字栏（他自己代劳了，模仿得还行），直接进了书包夹层。\n你只是隐约觉得，最近他写作业时，房门关得比以前紧了一点。`,
+        choices: [
+          {
+            text: '还没发现——继续过日子',
+            effects: { setFlags: { '谎言升级': '签名伪造成功，裂缝在内部蔓延' } },
+            result: '一切如常。成绩单在书包夹层里慢慢卷边。\n（有些事不是不存在，只是你还没看见。）',
+          },
+        ],
+      };
+    },
+  },
+
+  // ---------- 同桌 ----------
+  {
+    id: 'a_deskmate', kind: 'anchor', priority: 'main', day: [5, 14], stage: 'primary',
+    title: '同桌与三八线',
+    art: { pose: '少年', expr: '笑', outfit: '校服', scene: '教室' },
+    text: '他和同桌用铅笔在课桌中间划了一条线："过线的东西，归对方。"\n第一周，橡皮越线被没收；第二周，他的胳膊肘越线，被同桌用尺子量了三厘米；第三周，同桌的自动铅笔滚过来了——他捡起来，犹豫了一下，还了回去。',
+    choices: [
+      {
+        text: '"然后呢？快说！"',
+        effects: { security: 1, nursingSkill: 1 },
+        result: '"然后我们现在是好朋友了。"他总结道，"三八线是三八线，朋友是朋友。"\n你把这句话记了下来——成年人的世界，缺的就是这种条款意识。',
+      },
+      {
+        text: '"胳膊肘疼不疼？要不要跟老师说？"',
+        effects: {},
+        result: '"妈/爸——"他无奈地看着你，"男生之间的事情，你不懂。"\n你确实不懂了。十岁的小社会，已经有自己的外交惯例。',
+      },
+    ],
+  },
+
+  // ---------- 兴趣池（天赋显形第二幕） ----------
+  {
+    id: 'a_interest_pool', kind: 'anchor', priority: 'main', day: [10, 20], stage: 'primary',
+    title: '学校社团招新',
+    art: { pose: '少年', expr: '笑', outfit: '校服', scene: '操场' },
+    make(state) {
+      const map = {
+        art: '美术社（他一进门就不想走）', sport: '田径队（体育老师说他是块料）',
+        verbal: '朗诵主持班（他把招募令念得像颁奖词）', logic: '数学思维社（别的孩子走了，他还在解）',
+        empathy: '他没报社团——但班主任让他当了"纪律小助手"，说他会照顾人', handson: '科学实验组（他造了一座会亮灯的纸桥）',
+      };
+      const his = map[state.child.talent];
+      return {
+        text: `学校社团招新，操场摆开了三十张桌子：美术、田径、主持、编程、合唱、围棋……\n他拉着你在人群里穿行，最后停在了一张桌子前——${his}。\n旁边就是"奥数集训队"的报名表，排队的家长比孩子多。`,
+        choices: [
+          {
+            text: '报他停下来的那个',
+            effects: { security: 3, setFlags: { '兴趣深耕': '他自己选的路，跪着也走得开心' } },
+            result: '报名表上，他自己写下了名字——笔画歪歪扭扭，但一笔都没犹豫。\n（天赋这颗种子，从抓周的加权，到今天，终于落进了土里。）',
+          },
+          {
+            text: '"奥数更实用"——把队排上', cost: { money: 4800 },
+            effects: { money: -4800, spendKind: 'education', security: -2, setFlags: { '焦虑父母': '兴趣让位给了升学' } },
+            result: '他回头看了一眼那张桌子，然后把视线收了回来。\n奥数班他坐得住——只是每次路过美术室（/操场/广播站），脚步会慢半拍。',
+          },
+          {
+            text: '都不报，小学就是玩',
+            effects: { mama: 2, face: -1 },
+            result: '放学的操场、周末的自行车。你顶着家长群的暗流按住了报名的手——"兴趣班，先让他对世界有兴趣吧。"',
+          },
+        ],
+      };
+    },
+  },
+
+  // ---------- 二胎出生 ----------
+  {
+    id: 'a_second_child_born', kind: 'anchor', priority: 'main', day: [14, 30], stage: 'primary',
+    conditions: { flagsAll: ['二胎计划'] },
+    title: '弟弟/妹妹来了',
+    art: { pose: '少年', expr: '平静', outfit: '校服', scene: '医院' },
+    make(state) {
+      const girl = util.chance(0.5);
+      const word = girl ? '妹妹' : '弟弟';
+      const sec = state.child.security;
+      const mood = sec >= 60
+        ? `他对这个皱巴巴的小家伙充满了好奇，放学第一件事就是趴在婴儿床边看。${word}哭的时候，他会第一个喊你们。`
+        : sec >= 45
+          ? `他表现得很平静——太平静了。你说"去摸摸${word}"，他说"我作业还没写完"，然后回房间关上了门。`
+          : `他开始频繁地肚子疼、头疼，检查又什么都没有。医生私下提醒：大宝的症状，多半在心里。`;
+      return {
+        text: `三年前种下的那颗种子，今天发芽了——${word}出生了。\n${mood}`,
+        choices: [
+          {
+            text: '"你是哥哥/姐姐了"——让他参与照顾',
+            cost: { energy: 1 },
+            effects: { energy: -1, security: 2, marriage: 2, nursingSkill: 1 },
+            result: `他学会了冲奶粉的温度和拍嗝的手法，笨拙但认真。${word}第一次笑，是对着他笑的。\n那个瞬间的照片，后来在你的手机里存了很多年。`,
+          },
+          {
+            text: '先隔开，别让大宝打扰小宝休息',
+            effects: { security: -2, inLaw: 2 },
+            result: '他搬去了老人屋里住了一阵——"方便照顾"。没人做错什么，但他学会了在饭桌上安静，像客人。',
+          },
+          {
+            text: '给他买个新礼物，"补偿"一下', cost: { money: 800 },
+            effects: { money: -800, spendKind: 'toys', face: 1 },
+            result: '新球鞋让他高兴了三天。第四天他试探着问："你们是不是更喜欢妹妹/弟弟？"\n球鞋回答不了这个问题。',
+          },
+        ],
+      };
+    },
+  },
+
+  // ---------- 家长会 ----------
+  {
+    id: 'a_parent_meeting', kind: 'anchor', priority: 'main', day: [18, 22], stage: 'primary',
+    title: '家长会',
+    art: { pose: '少年', expr: '平静', outfit: '校服', scene: '教室' },
+    make(state) {
+      const score = G.reportScore(state);
+      const talent = state.child.talent;
+      const verdict = score >= 80
+        ? `"孩子很稳，就是课堂上有点安静——给他多一点发言的机会会更好。"`
+        : score >= 65
+          ? `"中等偏上，属于'再推一把就上去'的那档。家里要坚持抓习惯。"`
+          : `"成绩暂时落后，但我观察他${talent === 'art' ? '画画很有想法' : talent === 'sport' ? '体育特别突出' : talent === 'empathy' ? '特别会照顾同学，是班里的暖宝宝' : talent === 'handson' ? '动手能力全班第一，劳动课的作品我都拍了照' : '反应其实很快，只是心不在卷子上'}——每个孩子的花期不一样。"`;
+      return {
+        text: `家长会，你坐在他的座位上——椅子很小，膝盖顶着桌板。\n班主任轮到你时说：${verdict}`,
+        choices: [
+          {
+            text: '认真记笔记，回家一条条落实',
+            cost: { energy: 1 },
+            effects: { energy: -1, habit: 3, nursingSkill: 1 },
+            result: '记了满满两页。回家路上你在车里坐了十分钟，把"抓习惯"翻译成了三个具体动作。',
+          },
+          {
+            text: '"老师，是不是座位安排的问题？"',
+            effects: { face: -2, setFlags: { '成绩焦虑': '家长会上的防御性提问' } },
+            result: '老师保持微笑："座位每周轮换。"你意识到自己刚才在做什么——家长会上最难治的病，是家长的脸。',
+          },
+          {
+            text: '散会后单独留下来，多聊十分钟',
+            cost: { energy: 1 },
+            effects: { energy: -1, habit: 2, marriage: 1 },
+            result: '十分钟里，老师讲了一个你没见过的他：会帮值日生倒垃圾、会安慰哭鼻子的同学。\n原来老师眼中的孩子，和你眼中的，是同一个人的两页。',
+          },
+        ],
+      };
+    },
+  },
+
+  // ---------- 三年级现象 ----------
+  {
+    id: 'a_grade3', kind: 'anchor', priority: 'main', day: [26, 34], stage: 'primary',
+    title: '三年级，分水岭',
+    art: { pose: '少年', expr: '专注', outfit: '校服', scene: '家中·书桌' },
+    make(state) {
+      const habit = state.child.study.habit;
+      const sliding = habit < 50;
+      const score = G.reportScore(state, sliding ? -10 : 0);
+      const explain = sliding
+        ? `三年级开始，成绩从"背多分"转向"理解题"。以前靠记忆能拿的分，现在要靠习惯和阅读量来撑。\n他这次考了 ${score} 分——不是他变笨了，是赛道换了，而他的学习习惯，还停留在一年级。`
+        : `都说三年级是道坎，他稳稳地迈过去了：${score} 分。\n题目变难了，但每天固定的作业时间和阅读时间，让坡度对他来说没那么陡。`;
+      return {
+        text: `教育圈有句话："一二年级不分上下，三年级开始分化。"\n期中成绩出来，你们终于亲眼见到了这道"分水岭"。\n${explain}`,
+        choices: [
+          {
+            text: '加码：补习班 + 每日刷题', cost: { money: 6000 },
+            effects: { money: -6000, spendKind: 'education', habit: 4, security: -2, setFlags: { '补习依赖': '三年级开始依赖补习' } },
+            result: '成绩两周后开始回升。代价是他的画笔（/球鞋/课外书）在书架上落了灰——你安慰自己：等成绩稳了就还给他。"稳了"的定义，可以无限后移。',
+          },
+          {
+            text: '降难度，先重建信心',
+            cost: { energy: 1 },
+            effects: { energy: -1, security: 3, habit: 3 },
+            result: '你把目标从"追上大部队"改成"这周比上周多做对一道题"。一个月后他自己说："其实我慢慢会了。"\n信心这东西，摔碎容易，是这么一片一片粘回来的。',
+          },
+          {
+            text: '找原因：也许不是学习的问题',
+            effects: { habit: 2, security: 2 },
+            result: `你翻了最近三个月的卷子，发现错的题里有一半是"没读完题"。再往深处看：他最近睡眠不足——因为${state.flags['屏幕大战'] ? '晚上在被窝里刷手机' : '你们最近总在争吵'}。\n成绩单是结果，原因永远在别处。`,
+          },
+        ],
+      };
+    },
+  },
+
+  // ---------- 视力筛查 ----------
+  {
+    id: 'a_myopia', kind: 'anchor', priority: 'main', day: [20, 36], stage: 'primary',
+    title: '视力表上的 E 变小了',
+    art: { pose: '少年', expr: '平静', outfit: '校服', scene: '医院' },
+    make(state) {
+      const screenRule = Boolean(state.flags['屏幕规则']);
+      return {
+        text: `学校视力筛查的结果发到家长群：右眼 4.8，左眼 4.9，建议复查。\n复查结果：近视 125 度。医生问："平时户外活动多吗？用眼习惯怎么样？"\n${screenRule ? '你想起三年前立的屏幕规矩——幸好立得早，否则今天可能不止这个度数。' : '你想起那些"看会儿平板安静一会儿"的傍晚。它们都记得账。'}`,
+        choices: [
+          {
+            text: '配 OK 镜（角膜塑形镜）', cost: { money: 9800 },
+            effects: { money: -9800, spendKind: 'medical', face: 1 },
+            result: '每晚睡前戴、早上摘，度数涨得慢。一万块换一副"夜里偷偷工作的眼镜"——贵，但眼镜店老板说这是"最值得的近视税"。',
+          },
+          {
+            text: '普通框架眼镜', cost: { money: 800 },
+            effects: { money: -800, spendKind: 'medical', setFlags: { '近视': '眼镜人生，从九岁开始' } },
+            result: '配镜师说"度数还会涨，一年一查"。他戴上眼镜照镜子，看了很久，说："好像个书呆子。"\n第二天到学校，班里一半同学都戴着——他很快就不是"书呆子"了，是"正常的大家"。',
+          },
+          {
+            text: '先不配，每天户外两小时试试',
+            cost: { energy: 1 },
+            effects: { energy: -1, security: 1 },
+            result: '放学后的公园、周末的球场，每天雷打不动两小时。半年后复查：度数没涨。\n医生说"户外是目前唯一被证实有效的预防"——最便宜的药，是阳光。',
+          },
+        ],
+      };
+    },
+  },
+
+  // ---------- 校园边界事件 ----------
+  {
+    id: 'a_bully', kind: 'anchor', priority: 'main', day: [22, 42], stage: 'primary',
+    title: '操场角落的事',
+    art: { pose: '少年', expr: '委屈', outfit: '校服', scene: '操场' },
+    make(state) {
+      const sensitive = state.child.temperament === 'sensitive';
+      return {
+        text: `班主任来电：课间的时候，班里几个孩子给他起了外号，还把他的水杯藏了起来。\n${sensitive ? '他没告诉任何人——是别的同学看不下去说的。你接电话的手在抖：他回家什么都没提，还照常写了作业、道了晚安。' : '他跟人推搡了两下，都没受伤。老师说"孩子间的事，已经批评了"。'}`,
+        choices: [
+          {
+            text: '感谢老师，回家只听不说',
+            cost: { energy: 1 },
+            effects: { energy: -1, security: 3, nursingSkill: 2 },
+            result: '晚上你只是搂着他聊天，聊了四十分钟别的事。最后他自己开口："妈/爸，有同学拿我水杯。"\n你等到了这句话。有些事，孩子需要自己决定什么时候说。',
+          },
+          {
+            text: '要求对方当众道歉，找对方家长',
+            effects: { face: 2, security: 1 },
+            result: '道歉当着全班进行，水杯物归原主。事情解决了——只是后来那几个孩子见他绕着走，全班也安静了几天。正义到场，气氛没到。',
+          },
+          {
+            text: '教他"下次直接还手"',
+            effects: { security: -1, setFlags: { '社交初体验': '被教了用拳头说话' } },
+            result: '"不许先动手，但别人动手你必须还。"他背口诀一样记住了。\n你看着他，忽然想起自己爸爸说这话时，你也是这么大。',
+          },
+        ],
+      };
+    },
+  },
+
+  // ---------- 手机之战 ----------
+  {
+    id: 'a_phone_first', kind: 'anchor', priority: 'main', day: [36, 50], stage: 'primary',
+    title: '他要一部手机',
+    art: { pose: '少年', expr: '专注', outfit: '校服', scene: '家中' },
+    make(state) {
+      const rule = Boolean(state.flags['屏幕规则']);
+      return {
+        text: rule
+          ? '"全班就我没有手机。"这句话他每周说一次，已经说了两个月。\n三年级立下的屏幕规矩，正在经受青春前夜的第一次压力测试。'
+          : '他开始频繁借用你的手机"查题"——你后来发现查题十分钟，短视频二十五分钟。\n没有规矩的地基，这一次要现挖。',
+        choices: [
+          {
+            text: '电话手表→学生手机，功能逐级开放',
+            cost: { money: 1200 },
+            effects: { money: -1200, spendKind: 'care', security: 1, nursingSkill: 1 },
+            result: '能打电话、能定位、不能装游戏。他不太满意，但接受了——因为合同是你俩一起签的，包括"五年级开放听歌，初一开放微信"。',
+          },
+          {
+            text: '直接给旧手机，约定使用时间',
+            effects: { setFlags: { '屏幕规则': '迟到六年的规矩，从手机开始补课' } },
+            result: '第一周超时三次，扣掉三次周末使用权。第四周开始，闹钟响他自己关屏幕——规矩建立的最佳时机永远是"最早"，其次是"现在"。',
+          },
+          {
+            text: '给了手机，没立规矩',
+            effects: { setFlags: { '屏幕大战': '没有规则的开放，是战争的开始' }, security: -1 },
+            result: '他安静了很多，也远了很多。饭桌上的"嗯"越来越多，眼睛越来越不离开那块屏幕。\n你隐约知道，初中还有更大的仗要打。',
+          },
+        ],
+      };
+    },
+  },
+
+  // ---------- 小升初（本章终章） ----------
+  {
+    id: 'a_small_graduation', kind: 'anchor', priority: 'main', day: [57, 59], stage: 'primary',
+    title: '小升初',
+    art: { pose: '少年', expr: '笑', outfit: '校服', scene: '礼堂' },
+    make(state) {
+      const score = G.reportScore(state, 3);
+      const lieChain = state.flags['谎言升级'] ? '谎话连篇' : state.flags['诚实被温柔对待'] ? '诚实依旧' : '不好说';
+      let track, trackFlag;
+      if (score >= 75) {
+        track = '重点民办的实验班向他敞开了门——面试那天他侃侃而谈的样子，像极了抓周时紧紧攥住命运的那个婴儿。';
+        trackFlag = '小升初·优质';
+      } else if (score >= 55) {
+        track = '对口直升，一切平顺。没有惊喜，也没有惊吓——大多数人的故事，都是这个版本。';
+        trackFlag = '小升初·对口';
+      } else {
+        track = '分数卡在录取线上，最终进了一所民办的最后一档，学费不菲，底子偏虚——初中三年，是一场逆风局。';
+        trackFlag = '小升初·踩线';
+      }
+      const echo = state.flags['谎言升级']
+        ? '（你还记得吗——六年前那杯打翻的牛奶，四年前那个模仿的签名。今天他自己把成绩单放在了你桌上，你翻开一看：每一科都在，没有藏。）'
+        : '';
+      return {
+        text: `毕业典礼在礼堂举行，和幼儿园那次只隔了六年。\n${track}\n（这六年：撒谎链的最终状态——${lieChain}；天赋在他身上长成了形状；而你们，从产房外的年轻人，变成了能在毕业典礼上冷静鼓掌的中年人。）${echo}`,
+        choices: [
+          {
+            text: '拍全家福，和满月照、幼儿园毕业照放在一起',
+            effects: { marriage: 3, setFlags: { [trackFlag]: '小升初的答案，六年养育的总分' }, log: { text: '小学毕业。三张照片排成一排：襁褓、学士帽、红领巾。你数了数中间隔的年数，没数完就笑了。', hl: true } },
+            result: '三张照片排成一排。中间隔着的，是一千多个"晚上八点十五分"的作业桌，和无数个你已经想不起来、但都在场的普通日子。',
+          },
+          {
+            text: '当晚开始研究初中择校和分班考',
+            cost: { energy: 1 },
+            effects: { energy: -1, setFlags: { [trackFlag]: '小升初的答案，六年养育的总分', '焦虑父母': '毕业典礼当晚就在研究分班考' } },
+            result: '搜索记录：初中分班考范围、初一预习资料、寄宿 vs 走读。下一场军备竞赛的枪声，又一次由你亲手鸣响。',
+          },
+        ],
+      };
+    },
+  },
+
   ];
   const ANCHOR_FOLLOWUPS = [
     {
@@ -1952,6 +2480,19 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       text,
       choices: wp >= 88 ? highChoices : wp <= 12 ? lowChoices : normalChoices,
     };
+  };
+
+  // 成绩公式（小学章核心）：成绩 = 天赋底盘 + 习惯 + 状态（安全感） + 择校加成 + 随机
+  // 撒谎链不在公式里——它决定的是"你什么时候知道成绩"。
+  G.reportScore = function (state, bonus = 0) {
+    const talentBase = { logic: 8, verbal: 4 }[state.child.talent] || 0;
+    const habit = state.child.study.habit
+      + (state.flags['幼小衔接·习惯'] ? 8 : 0)
+      + (state.flags['幼小衔接·补习'] ? 5 : 0)
+      + (state.flags['学区房'] ? 3 : 0);
+    // 安全感下限保护有效、加分封顶（避免长期满值安全感把分数顶穿）
+    const secuMod = util.clamp(Math.round((state.child.security - 50) / 4), -10, 5);
+    return Math.max(20, Math.min(98, 54 + talentBase + Math.round((habit - 50) / 2) + secuMod + bonus + util.randInt(-8, 8)));
   };
 
   G.ANCHORS = ANCHORS;

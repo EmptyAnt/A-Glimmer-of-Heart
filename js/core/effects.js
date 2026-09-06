@@ -37,6 +37,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       if (effects[key]) c[key] = Math.max(0, c[key] + effects[key]);
     }
     if (effects.nightWakeStreak) c.nightWakeStreak = Math.max(0, c.nightWakeStreak + effects.nightWakeStreak);
+    if (effects.habit) c.study.habit = clamp(c.study.habit + effects.habit, 0, 100);
     if (effects.weightG) c.weight = Math.round((c.weight + effects.weightG / 1000) * 1000) / 1000;
     if (effects.lengthCm) c.length = Math.round((c.length + effects.lengthCm) * 10) / 10;
 

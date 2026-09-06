@@ -377,6 +377,22 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       pitch: '"恐龙、太空、人体——十万个为什么的官方答案库！"',
       effects: { money: -328, spendKind: 'education', security: 1 }, perk: '三十本书，他最爱的是恐龙那本——已经被翻到卷边。你现在能准确区分霸王龙和迅猛龙，这是你没想到的技能点。',
     },
+    // 小学商品
+    {
+      name: '护脊书包（德国工学）', price: 499, kind: 'care', gender: null, stage: 'primary',
+      pitch: '"孩子脊椎在发育！书包自重轻一半，护脊从一年级开始！"',
+      effects: { money: -499, spendKind: 'care', face: 1 }, perk: '自重确实轻，功能确实多——唯一的缺点是他坚持要挂满挂件，把省下的重量全挂了回去。',
+    },
+    {
+      name: '错题打印机', price: 399, kind: 'education', gender: null, stage: 'primary',
+      pitch: '"拍一下就打印，错题本从此不用手抄！学霸都在用！"',
+      effects: { money: -399, spendKind: 'education', habit: 1 }, perk: '第一周打了五十道错题，贴满了整本。第二周打了十道。第三周，它在书架上开始吃灰——但它确实好用过一周。',
+    },
+    {
+      name: '全套《米小圈上学记》', price: 129, kind: 'education', gender: null, stage: 'primary',
+      pitch: '"全班都在看！不爱读书的孩子也能看入迷！"',
+      effects: { money: -129, spendKind: 'education', security: 1 }, perk: '他趴在床上笑出了猪叫。你看了一眼定价除以笑声——这是教育支出里性价比最高的一笔。',
+    },
   ];
   const SHOP_CHANNELS = ['母婴店导购', '直播间', '妈妈群里的接龙', '商场专柜', '朋友圈代购'];
 
@@ -386,6 +402,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     // 性别化商品权重更高——算法比你更懂"该给你推什么"，这正是种草的日常
     const pool = SHOP_ITEMS.filter((item) => !item.gender || item.gender === gender)
       .filter((item) => (item.stage || 'newborn') === stageId);
+    if (pool.length === 0) pool.push(SHOP_ITEMS[0]); // 阶段货池为空时兜底，避免空池异常
     const item = util.weighted(pool, pool.map((i) => (i.gender ? 2 : 1)));
     const channel = util.pick(SHOP_CHANNELS);
     const outfit = gender === 'girl' ? '粉色连体衣' : '蓝色连体衣';
@@ -506,12 +523,23 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       smoothEffects: { security: 2, nursingSkill: 1 },
       mishapEffects: { face: 1, security: -2 },
     },
+    // 小学场景
+    {
+      name: '放学路上', stage: 'primary', mishap: '明明十分钟的路走了四十分钟——你在后面远远跟着，看见他和同学蹲在花坛边看了二十分钟蚂蚁。',
+      smooth: '走路回家的二十分钟，是他一天里话最多的时候：谁被老师点了名、食堂今天有什么、同桌的橡皮又丢了。',
+      smoothEffects: { security: 2 },
+    },
+    {
+      name: '睡前夜读', stage: 'primary', mishap: '读到第三章你说"今天到这了"，他抗议无效——但五分钟后你在门缝里看见，他打着手电在被窝里接着看。',
+      smooth: '一章读完，他忽然说："妈/爸，书里这个人好像我们班的谁。"你愣了一下——他已经在用文学分析生活了。',
+      smoothEffects: { security: 2, habit: 1 },
+    },
   ];
 
   function makeDaily(state) {
     const stageId = G.engine.stageOf(state.day).id;
     const scenes = DAILY_SCENES.filter((s) => (s.stage || 'newborn') === stageId);
-    const scene = util.pick(scenes);
+    const scene = util.pick(scenes.length > 0 ? scenes : DAILY_SCENES);
     const skilled = state.child.nursingSkill >= 3;
     const isMishap = skilled ? util.chance(0.3) : util.chance(0.6);
     const body = isMishap ? scene.mishap : scene.smooth;
@@ -563,12 +591,17 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     { t: '"同事家孩子钢琴都考二级了，你们学什么了？"', stage: 'kindergarten' },
     { t: '"人家孩子都能自己读绘本了，你们还陪读呢？"', stage: 'kindergarten' },
     { t: '"幼小衔接班报了吗？现在零基础入学就是灾难。"', stage: 'kindergarten' },
+    { t: '"人家这次数学又是满分。你们家呢？"', stage: 'primary' },
+    { t: '"同事家孩子奥数拿奖了，据说初中都预定好了。"', stage: 'primary' },
+    { t: '"三好学生名单出来了，有你家吗？"', stage: 'primary' },
+    { t: '"六年级了还不报衔接班？初一要吃大亏的。"', stage: 'primary' },
   ];
 
   function makeCompare(state) {
     const stageId = G.engine.stageOf(state.day).id;
     const src = util.pick(COMPARE_SOURCES);
-    const point = util.pick(COMPARE_POINTS.filter((p) => p.stage === stageId)).t;
+    const points = COMPARE_POINTS.filter((p) => p.stage === stageId);
+    const point = (points.length > 0 ? util.pick(points) : COMPARE_POINTS[0]).t;
     const isPo = src === '婆婆' || src === '老家亲戚';
     return {
       title: '别人家的孩子',
@@ -946,6 +979,54 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
           art: { pose: state.day <= 13 ? '新生儿' : state.day <= 99 ? '婴儿' : '幼儿', expr: '平静', outfit: '连体衣', scene: '家中' },
           text,
           choices,
+        };
+      },
+    },
+    {
+      // 作业日常：小学家长的每晚八点档
+      id: 'tpl_homework', name: '晚上八点档', stage: 'primary', weight: 14, minDay: 2, perDayMax: 1, cooldown: 6,
+      canTrigger: () => true,
+      make(state) {
+        const scenes = [
+          {
+            name: '听写之夜', text: '今晚听写，"的地得"三个兄弟全军覆没。"慢慢地跑"他写成了"地"，"跑得快"写成了"的"。\n你试图用"土办法"讲解，讲到一半发现——你自己也快不会了。',
+          },
+          {
+            name: '口算崩盘', text: '口算 100 题，对答案：错了 3 题。第 4 题是 7×8，他写了 54。\n你深吸一口气："7×8 是多少？"他不假思索："56！"——那卷子上这个 54 是谁写的？',
+          },
+          {
+            name: '手抄报', text: '周五布置、周日交的手抄报，主题是"垃圾分类"。\n他画了两个格子就去拼乐高了。现在是周日晚上七点四十。',
+          },
+          {
+            name: '背课文', text: '"盼望着，盼望着，东风来了，春天的脚步近了。"——朱自清的春天很美，你儿子背到"盼望着，盼望着"就卡住了，已经卡了四遍。',
+          },
+          {
+            name: '书包考古', text: '你帮他理书包，从里面出土了：三张揉皱的卷子、半块橡皮、一根霉掉的香蕉，和两周前"需要家长签字"的通知单。',
+          },
+        ];
+        const scene = util.pick(scenes);
+        return {
+          title: `作业：${scene.name}`,
+          art: { pose: '少年', expr: '专注', outfit: '校服', scene: '家中·书桌' },
+          text: scene.text,
+          choices: [
+            {
+              text: '深呼吸，重头再来一遍',
+              cost: { energy: 1 },
+              effects: { energy: -1, habit: 2, nursingSkill: 1 },
+              result: '第九遍的时候，他终于背顺了。你鼓掌，他也笑了——晚上九点半的客厅，像刚打完一场胜仗。',
+            },
+            {
+              text: '吼完再教（教是教了，吼也是吼了）',
+              effects: { security: -2, marriage: -1, habit: 1 },
+              result: '作业完成了，正确率不错。他睡前小声问你："妈/爸，你是不是不喜欢我了？"\n你说没有。你说完这句，在客厅黑着灯坐了一会儿。',
+            },
+            {
+              text: '今晚算了，明天再说',
+              effects: { habit: -2, mama: 1 },
+              result: '手抄报第二天早上七点二十分完成了（主要是你完成的）。路上你跟他说"下次早点"，他说"哦"。\n你们都知道还有下次。',
+            },
+          ],
         };
       },
     },

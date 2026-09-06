@@ -91,6 +91,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         visitorCount: 0,
         overfed: 0,
         nightWakeStreak: 0,
+        study: { habit: 50 }, // 学习习惯基线（小学章起被事件塑形）
       },
       flags: {},
       pending: [],
