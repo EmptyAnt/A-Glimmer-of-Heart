@@ -86,10 +86,13 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       // 过度喂养的影响在辅食期前最明显（半岁后代谢摊平）
       const over = c.overfed > 0 && age <= 180 ? 4 : 0;
 
-      // 分段日增重：新生儿回升期 → 1-3月猛长期 → 逐步放缓（对标 WHO 月度中位增速）
+      // 分段日增重：生理性跌秤（出生体重 3-9%，取 ~5%，7-10 天恢复）→ 月内猛长 → 逐步放缓
       let dailyWeight;
-      if (age <= 4) dailyWeight = -24 + age * 8 + mod; // 生理性跌秤后回升
-      else if (age <= 28) dailyWeight = 37 + mod + over + randInt(-5, 8);
+      if (age <= 3) {
+        // 前 3 天按出生体重百分比跌秤（累计约 5%，个体 ±20%）
+        const dipPct = [0.02, 0.017, 0.013][age - 1] * rand(0.8, 1.2);
+        dailyWeight = -Math.round(c.birthWeight * 1000 * dipPct);
+      } else if (age <= 28) dailyWeight = 45 + mod + over + randInt(-5, 8);
       else if (age <= 90) dailyWeight = 26 + mod + over + randInt(-4, 6);
       else if (age <= 180) dailyWeight = 18 + Math.round(mod / 2) + over + randInt(-3, 5);
       else if (age <= 270) dailyWeight = 13 + randInt(-3, 4);

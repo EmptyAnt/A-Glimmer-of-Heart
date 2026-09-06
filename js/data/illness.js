@@ -206,7 +206,7 @@ var GAME = globalThis.GAME || (globalThis.GAME || (globalThis.GAME = {}));
       id: 'roseola',
       name: '幼儿急疹',
       stage: 'infant',
-      canTrigger: (state) => state.ageDays >= 120 && state.ageDays <= 300,
+      canTrigger: (state) => state.ageDays >= 180 && state.ageDays <= 540,
       dailyProb(state) {
         return 0.02 * G.CONFIG.CONSTITUTION_TIERS[state.child.constitution].illnessMult;
       },

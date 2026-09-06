@@ -798,7 +798,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     // ---------- 翻身 ----------
     {
-      id: 'a_roll_over', kind: 'anchor', priority: 'main', day: [8, 16], stage: 'infant',
+      id: 'a_roll_over', kind: 'anchor', priority: 'main', day: [14, 24], stage: 'infant',
       title: '他会翻身了',
       art: { pose: '婴儿', expr: '笑', outfit: '连体衣', scene: '家中' },
       make(state) {
@@ -830,7 +830,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     // ---------- 认生期 ----------
     {
-      id: 'a_stranger_anxiety', kind: 'anchor', priority: 'main', day: [12, 20], stage: 'infant',
+      id: 'a_stranger_anxiety', kind: 'anchor', priority: 'main', day: [24, 34], stage: 'infant',
       title: '他开始认生了',
       art: { pose: '婴儿', expr: '大哭', outfit: '连体衣', scene: '亲戚家' },
       make(state) {
@@ -863,7 +863,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     // ---------- 出牙与夜醒回潮 ----------
     {
-      id: 'a_teething', kind: 'anchor', priority: 'main', day: [16, 26], stage: 'infant',
+      id: 'a_teething', kind: 'anchor', priority: 'main', day: [20, 30], stage: 'infant',
       title: '出牙了，夜醒也回来了',
       art: { pose: '婴儿', expr: '不适', outfit: '连体衣', scene: '家中·凌晨' },
       text: '下牙床冒出两个小白点。白天他逮什么啃什么，夜里——睡得好好的日子，结束了。\n夜醒回潮，比月子那次还磨人：这次他醒，是疼。',
@@ -933,7 +933,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     // ---------- 会爬了 ----------
     {
-      id: 'a_crawl', kind: 'anchor', priority: 'main', day: [22, 32], stage: 'infant',
+      id: 'a_crawl', kind: 'anchor', priority: 'main', day: [30, 42], stage: 'infant',
       title: '他会爬了',
       art: { pose: '婴儿', expr: '笑', outfit: '连体衣', scene: '家中' },
       text: '先是倒退，再是原地转圈，某个下午，他忽然手脚并用向前拱了半米——会爬了。\n从此这个家进入了"移动目标时代"：数据线、拖鞋、猫粮盆，都成了他的目的地。',
@@ -959,7 +959,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     // ---------- 第一声爸爸妈妈 ----------
     {
-      id: 'a_first_word', kind: 'anchor', priority: 'main', day: [26, 40], stage: 'infant',
+      id: 'a_first_word', kind: 'anchor', priority: 'main', day: [38, 47], stage: 'infant',
       title: '第一声"爸爸/妈妈"',
       art: { pose: '婴儿', expr: '笑', outfit: '连体衣', scene: '家中' },
       make(state) {
@@ -1038,7 +1038,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         {
           text: '买个学步车，省心', cost: { money: 400 },
           effects: { money: -400, spendKind: 'toys' },
-          result: '他坐在学步车里横冲直撞，撞翻了垃圾桶。儿保医生看到照片欲言又止："……影响腿型，建议少用。"买都买了。',
+          result: '他坐在学步车里横冲直撞，撞翻了垃圾桶。儿保医生看到照片，这次没有欲言又止："加拿大 2004 年就把这东西禁售了——翻台阶、烫伤、O 形腿，还耽误学爬。"买都买了，你把它收进了储物间。',
         },
       ],
     },
@@ -1116,7 +1116,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     // ---------- terrible two 开场 ----------
     {
-      id: 'a_terrible_two', kind: 'anchor', priority: 'main', day: [1, 6], stage: 'toddler',
+      id: 'a_terrible_two', kind: 'anchor', priority: 'main', day: [6, 14], stage: 'toddler',
       title: '他说"不"了',
       art: { pose: '幼儿', expr: '生气', outfit: '罩衣', scene: '家中' },
       text: '"喝水吗？""不！""吃饭吗？""不！""那抱抱？""不！！"\n不知道从哪天起，他嘴里最流利的字是"不"。从前那个软软糯糯任人摆布的小婴儿，一夜之间变成了一个有主见、且主见全用来反对你的小人。\n网上说，这叫 terrible two，是自我意识觉醒的标志——"值得庆祝"。',
@@ -1141,7 +1141,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     // ---------- 语言爆发 ----------
     {
-      id: 'a_language_burst', kind: 'anchor', priority: 'main', day: [2, 8], stage: 'toddler',
+      id: 'a_language_burst', kind: 'anchor', priority: 'main', day: [6, 14], stage: 'toddler',
       title: '语言爆发期来了',
       art: { pose: '幼儿', expr: '平静', outfit: '罩衣', scene: '家中' },
       make(state) {
@@ -1174,7 +1174,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     // ---------- 如厕训练 ----------
     {
-      id: 'a_toilet_training', kind: 'anchor', priority: 'main', day: [3, 10], stage: 'toddler',
+      id: 'a_toilet_training', kind: 'anchor', priority: 'main', day: [6, 12], stage: 'toddler',
       title: '如厕训练',
       art: { pose: '幼儿', expr: '专注', outfit: '小内裤', scene: '家中' },
       text: '同龄孩子开始告别尿不湿了。你买了小马桶、训练裤和贴纸奖励表。\n老人有不同意见："把尿多省事，我们那时候……"——这句话的第无数次出现了。',
@@ -1819,7 +1819,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         const folk = Boolean(state.flags['黄疸土方']);
         return {
           text: folk
-            ? '社区复测，胆红素不降反升。医生问在家做了什么处理，听到"葡萄糖水和金银花"时，笔停了一下："马上住院。"\n婆婆攥着缴费单，一路没敢说话。'
+            ? '社区复测，胆红素不降反升。医生问在家做了什么处理，听到"葡萄糖水和金银花"时，笔停了一下："马上住院。"\n他还多问了一句："足跟血筛查做过吗？孩子要是有蚕豆病，黄连、金银花这类东西碰都不能碰——会溶血的。"\n婆婆攥着缴费单，一路没敢说话。'
             : '社区复测，胆红素不降反升，黄染已经过了肚脐。医生收起了笑容："别观察了，今天必须住院。"',
           choices: [
             {
