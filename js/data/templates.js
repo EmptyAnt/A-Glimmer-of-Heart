@@ -884,5 +884,70 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         };
       },
     },
+    {
+      // 父母病倒：家里没人能病。感冒/流感/隔离——年龄越大中招越勤（PARENT_AGES.sickMul）
+      id: 'tpl_parent_sick', name: '父母病倒', stage: 'both', weight: 6, minDay: 5, perDayMax: 1, cooldown: 18,
+      canTrigger: (state) => {
+        const season = G.util.seasonOf(state);
+        // 冬春高发 + 年龄档系数：高龄父母更容易中招（目标全程 2~3 次，保持稀缺感）
+        const seasonP = season === 'winter' ? 0.3 : season === 'autumn' || season === 'spring' ? 0.15 : 0.06;
+        const ageMul = (G.CONFIG.PARENT_AGES.find((a) => a.id === state.parentAge) || {}).sickMul || 1;
+        return util.chance(seasonP * ageMul);
+      },
+      make(state) {
+        const selfSick = util.chance(0.5); // 病的是视角本人还是伴侣
+        const flu = util.chance(0.35); // 流感：更重
+        const patient = selfSick ? '你' : (state.perspective === 'mama' ? '他' : '她');
+        const fever = flu ? '，体温计显示 38.9℃' : '，嗓子像塞了砂纸';
+        const text = flu
+          ? `${patient}早上醒来就觉得不对——中午开始浑身酸痛${fever}。流感季的中招，来得毫无悬念。\n这个家最讽刺的定律：孩子病了有爸妈，爸妈病了——只剩爸妈。`
+          : `${patient}开始流鼻涕、打喷嚏${fever}。普通感冒，扛一扛好像也行——但家里还有一个要抱要陪要夜里两点喂奶的小人。`;
+        const choices = [
+          {
+            text: '戴口罩、分房睡，物理隔离',
+            effects: { energy: -1, security: -1, marriage: 2 },
+            result: `${patient}戴上口罩退到次卧，家人隔着门缝交流。孩子在大人之间来回找，晚上多哭了两次。\n三天后退烧，全家无人中招——科学防护，就是有点冷清。`,
+          },
+          {
+            text: '硬撑着带，家里离了谁都不行',
+            effects: (() => {
+              const infected = util.chance(0.45);
+              return {
+                mama: -4,
+                ...(infected ? { money: -300, spendKind: 'medical', security: -2 } : {}),
+              };
+            })(),
+            result: (util.chance(0.45))
+              ? '硬撑了两天，第三天孩子也烧了——38.5℃。一大一小两个病号，家里像临时诊所。你在药店和厨房之间来回跑，忽然很想念没什么用的自己一个人感冒的日子。'
+              : '硬撑了三天，居然谁都没传染。感冒好了，人瘦了两斤——这个家的韧性，都是这么练出来的。',
+          },
+        ];
+        if (['grandma', 'grandma2'].includes(state.family.careMode)) {
+          choices.push({
+            text: '向老人求援，让TA顶几天',
+            effects: (() => {
+              const elderCaught = util.chance(0.2);
+              return { energy: 1, inLaw: elderCaught ? -3 : 2, ...(elderCaught ? { mama: -2 } : {}) };
+            })(),
+            result: (util.chance(0.2))
+              ? '老人二话不说接管了一切——三天后，老人也病倒了。两代人接力病倒，这个家的运转全靠最后一根火柴。'
+              : '老人二话不说接管了一切：做饭、带娃、消毒，顺手还把你泡的枸杞水骂了一顿。有些时候，救场的就是那个平时被你纠正育儿观念的人。',
+          });
+        }
+        if (flu) {
+          choices.push({
+            text: '（流感）请假卧床，全家停摆一天',
+            effects: { energy: -2, face: -1, marriage: 1 },
+            result: '工作请假、孩子交给另一半，全家降速运行一天。世界没有停——原来停下来的只有你们，而这也够了。',
+          });
+        }
+        return {
+          title: flu ? `${patient === '你' ? '你' : patient}得了流感` : '家里有人感冒了',
+          art: { pose: state.day <= 13 ? '新生儿' : state.day <= 99 ? '婴儿' : '幼儿', expr: '平静', outfit: '连体衣', scene: '家中' },
+          text,
+          choices,
+        };
+      },
+    },
   ];
 })(GAME);

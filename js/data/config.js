@@ -149,6 +149,14 @@ GAME.CONFIG = {
     eczema: { summer: 1.4, winter: 1.3 },
   },
 
+  // 父母生育年龄档：可开局选择或随机。影响收入、产后恢复、生病概率与文案
+  PARENT_AGES: [
+    { id: 'young', name: '22~26 岁', incomeMul: 0.85, sickMul: 0.85, mamaStart: 2, desc: '钱不多，身体扛造，被老人管得更多' },
+    { id: 'prime', name: '27~31 岁', incomeMul: 1, sickMul: 1, mamaStart: 0, desc: '主流生育年龄（默认体验）' },
+    { id: 'mature', name: '32~36 岁', incomeMul: 1.1, sickMul: 1.1, mamaStart: -3, desc: '事业稳定，恢复变慢' },
+    { id: 'late', name: '37 岁以上', incomeMul: 1.15, sickMul: 1.25, mamaStart: -6, desc: '高龄产妇：产检档案比人厚，每一项都是选择题' },
+  ],
+
   PRICES: {
     yueziCenter: 68000,    // 顶级月子中心
     yuesao: 13000,         // 住家育儿嫂（月）

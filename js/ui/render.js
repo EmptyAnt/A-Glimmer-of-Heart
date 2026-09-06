@@ -262,6 +262,44 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     }
     box.appendChild(form);
 
+    // 出生设定：留白给命运，或亲手掷骰
+    const fateLabel = el('div', null, '出生设定（默认随机——也可以自己掷）');
+    fateLabel.style.margin = '4px 0 8px';
+    box.appendChild(fateLabel);
+    const fateForm = el('div', 'name-form');
+    fateForm.style.margin = '0 0 8px';
+    const selects = {};
+    const buildSelect = (key, label, options) => {
+      const wrap = el('label', null, null);
+      wrap.style.display = 'flex';
+      wrap.style.flexDirection = 'column';
+      wrap.style.fontSize = '12px';
+      wrap.style.color = 'var(--ink-light)';
+      const sel = document.createElement('select');
+      sel.style.marginTop = '4px';
+      sel.style.padding = '8px';
+      sel.style.border = '1px solid var(--line)';
+      sel.style.borderRadius = '8px';
+      sel.style.background = 'var(--card)';
+      sel.style.fontFamily = 'inherit';
+      for (const [value, text] of options) {
+        const opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = text;
+        sel.appendChild(opt);
+      }
+      wrap.append(el('span', null, label), sel);
+      selects[key] = sel;
+      fateForm.appendChild(wrap);
+    };
+    buildSelect('birthMonth', '出生月份', [['', '随机（推荐）'], ...Array.from({ length: 12 }, (_, i) => [String(i + 1), `${i + 1} 月`])]);
+    buildSelect('region', '地域', [['', '随机（推荐）'], ['north', '北方'], ['south', '南方']]);
+    buildSelect('parentAge', '生育年龄', [
+      ['', '随机（推荐）'],
+      ...CONFIG.PARENT_AGES.map((a) => [a.id, `${a.name} —— ${a.desc}`]),
+    ]);
+    box.appendChild(fateForm);
+
     const cards = el('div', 'preset-cards');
     let selected = CONFIG.PRESETS[0].id;
     const cardEls = {};
@@ -287,6 +325,9 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     btn.addEventListener('click', () => onStart({
       presetId: selected,
       perspective,
+      birthMonth: selects.birthMonth.value ? Number(selects.birthMonth.value) : undefined,
+      region: selects.region.value || undefined,
+      parentAge: selects.parentAge.value || undefined,
       papaName: inputs.papaName.value.trim() || '陈阳',
       mamaName: inputs.mamaName.value.trim() || '林晚',
       nickname: inputs.nickname.value.trim() || '小汤圆',
@@ -316,7 +357,10 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       autumn: '秋高气爽。他人生第一个月，将从一件薄抱被开始。',
     };
     card.appendChild(el('h2', null, `${state.names.papa} & ${state.names.mama}：${genderText}。`));
-    card.appendChild(el('div', 'sub', `${state.birthMonth} 月 · ${state.region === 'north' ? '北方' : '南方'}出生。${SEASON_FLAVOR[G.util.seasonOf({ birthMonth: state.birthMonth, ageDays: 0 })]}`));
+    card.appendChild(el('div', 'sub', `她生他时 ${state.parentAgeNum} 岁。${state.birthMonth} 月 · ${state.region === 'north' ? '北方' : '南方'}出生。${SEASON_FLAVOR[G.util.seasonOf({ birthMonth: state.birthMonth, ageDays: 0 })]}`));
+    if (state.parentAge === 'late') {
+      card.appendChild(el('div', 'sub', '（高龄产妇：产检档案比人厚，无创、糖耐、胎监，每一项都是选择题。好在——你都答完了。）'));
+    }
     const stats = el('div', 'birth-stats');
     for (const [label, value] of [['出生体重', `${child.birthWeight} kg`], ['出生身长', `${child.birthLength} cm`], ['体重百分位', util.fmtPct(G.growth.weightPercentile({ ...state, ageDays: 0, child: { ...child, weight: child.birthWeight, length: child.birthLength } }))]]) {
       const col = el('div');

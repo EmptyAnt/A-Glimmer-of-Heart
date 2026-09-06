@@ -36,6 +36,22 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
   function createGame(opts) {
     const preset = CONFIG.PRESETS.find((p) => p.id === opts.presetId) || CONFIG.PRESETS[0];
     const birth = rollBirth();
+
+    // 开局命运：可选或随机（月份/地域/父母生育年龄）
+    const pickAge = () => {
+      if (opts.parentAge && CONFIG.PARENT_AGES.some((a) => a.id === opts.parentAge)) return opts.parentAge;
+      return util.weighted(
+        CONFIG.PARENT_AGES.map((a) => a.id),
+        [15, 45, 30, 10],
+      );
+    };
+    const parentAge = pickAge();
+    const ageMeta = CONFIG.PARENT_AGES.find((a) => a.id === parentAge);
+    const ageRange = { young: [22, 26], prime: [27, 31], mature: [32, 36], late: [37, 42] }[parentAge];
+    const parentAgeNum = util.randInt(ageRange[0], ageRange[1]);
+    const birthMonth = Number.isInteger(opts.birthMonth) && opts.birthMonth >= 1 && opts.birthMonth <= 12
+      ? opts.birthMonth : birth.birthMonth;
+    const region = opts.region === 'north' || opts.region === 'south' ? opts.region : birth.region;
     const perspective = CONFIG.PERSPECTIVES.some((p) => p.id === opts.perspective)
       ? opts.perspective
       : 'mama';
@@ -47,17 +63,19 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       ended: false,
       stage: 'newborn', // 人生阶段：驱动界面主题色切换
       perspective,
-      birthMonth: birth.birthMonth, // 出生月份（1-12）：季节系统的种子
-      region: birth.region, // 'north' | 'south'
+      birthMonth, // 出生月份（1-12）：季节系统的种子
+      region, // 'north' | 'south'
+      parentAge, // 生育年龄档
+      parentAgeNum, // 具体年龄（文案用）
       names: { papa: opts.papaName, mama: opts.mamaName },
       family: {
         preset: preset.id,
         money: preset.money,
-        monthlyIncome: preset.monthlyIncome,
+        monthlyIncome: Math.round(preset.monthlyIncome * ageMeta.incomeMul), // 年龄档收入系数
         energy: CONFIG.DAILY_ENERGY,
         marriage: 70,
         inLaw: 65,
-        mama: 72,
+        mama: util.clamp(72 + ageMeta.mamaStart, 0, 100), // 高龄档产后状态起点更低
         face: 50,
         careMode: null,
       },
