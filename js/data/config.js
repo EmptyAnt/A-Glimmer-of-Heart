@@ -72,6 +72,7 @@ GAME.CONFIG = {
     { id: 'kindergarten', name: '幼儿园', ticks: 36, dayWeight: 30, energy: 4, unitLabel: '月' },
     { id: 'primary', name: '小学', ticks: 60, dayWeight: 30, energy: 4, unitLabel: '月' }, // 6学年×10个学期月，暑假自动折叠
     { id: 'junior', name: '初中', ticks: 30, dayWeight: 30, energy: 4, unitLabel: '月' },
+    { id: 'senior', name: '高中', ticks: 36, dayWeight: 30, energy: 4, unitLabel: '月' },
     // 以下阶段仅预配置主题色，尚未开放
     { id: 'primary', name: '小学' },
     { id: 'junior', name: '初中' },

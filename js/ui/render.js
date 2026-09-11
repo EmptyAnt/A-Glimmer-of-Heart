@@ -385,8 +385,8 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
   function renderEnd(container, report, onRestart) {
     container.textContent = '';
     const box = el('div', 'end-box');
-    box.appendChild(el('h1', null, '十五岁了'));
-    box.appendChild(el('div', 'sub center', '—— 从呱呱坠地，到中考放榜 ——'));
+    box.appendChild(el('h1', null, '十八岁了'));
+    box.appendChild(el('div', 'sub center', '—— 从呱呱坠地，到站台上那个不回头的背影 ——'));
 
     const body = el('div', 'end-section');
     body.appendChild(el('h2', null, '满月体检报告'));

@@ -1098,6 +1098,65 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         };
       },
     },
+    {
+      // 高三日常：倒计时下的两百个日夜
+      id: 'tpl_gaokao_daily', name: '倒计时', stage: 'senior', weight: 18, minDay: 20, perDayMax: 1, cooldown: 2,
+      canTrigger: () => true,
+      make() {
+        const scenes = [
+          {
+            name: '模考过山车', text: '二模比一模高了 30 分，全家刚高兴完一个周末，三模掉了 20 分。\n他的表情像 K 线图，你的心情跟着做波段。',
+            choices: [
+              { text: '"看趋势，别看单点。"', effects: { security: 2, habit: 1 }, result: '你把三次成绩画成折线——整体是向上的。他盯着那条线看了很久："确实是涨的。"' },
+              { text: '"掉了 20 分？！这还了得？"', effects: { security: -2, setFlags: { '成绩焦虑': '三模后的家庭气氛冰点' } }, result: '那晚饭桌上没人说话。他晚上加做了一套卷子——是恐惧在做，不是脑子。' },
+            ],
+          },
+          {
+            name: '百日誓师', text: '学校操场，红旗，誓词，广播里放着《相信自己》。他举着拳头喊口号，声音混在两千个声音里。\n你在家长群里看直播，忽然鼻子一酸。',
+            choices: [
+              { text: '给他写一封信，塞进书包', effects: { security: 3 }, result: '信里没提成绩，只写了三件他小时候的糗事和一句话："无论考成什么样，家里的灯给你留着。"\n后来他说，那封信他在考场上想起过。' },
+              { text: '拍下誓师照片，发家族群', effects: { face: 3 }, result: '家族群瞬间沸腾。奶奶转发到了广场舞群——现在整个小区都知道你家有高三生。' },
+            ],
+          },
+          {
+            name: '晚自习的灯', text: '晚上十点，你在校门口等他。教学楼灯火通明，每一格亮着的窗户后面，都是一个伏案的十七岁。\n人流涌出来，路灯把校服照成一片蓝白。',
+            choices: [
+              { text: '接他，路上什么都不聊', effects: { security: 2 }, result: '车里的沉默是舒服的。偶尔他说一句"今天物理好难"，你回"嗯"。\n到了楼下他说："妈/爸，明天想吃你煮的面。"这是高三最贵的点歌。' },
+              { text: '让他自己走回来，锻炼独立', effects: {}, result: '他走的那条路要二十分钟。后来他告诉你，高三最喜欢的就是这二十分钟——可以不想任何题，也可以想任何事。' },
+            ],
+          },
+        ];
+        const scene = util.pick(scenes);
+        return {
+          title: `高三：${scene.name}`,
+          art: { pose: '青年', expr: '专注', outfit: '高中校服', scene: '教室' },
+          text: scene.text,
+          choices: scene.choices,
+        };
+      },
+    },
+    {
+      // 代沟日常：他长大了，你们的世界开始换轨
+      id: 'tpl_gap', name: '代际时差', stage: 'senior', weight: 12, minDay: 2, perDayMax: 1, cooldown: 4,
+      canTrigger: () => true,
+      make() {
+        const scenes = [
+          { name: '反过来教你', text: '他教你怎么用手机银行转账、怎么识别诈骗链接、怎么把照片存到"云"上。\n"妈/爸，你这个密码太简单了。"他一边嫌弃一边帮你改。你看着他操作如飞的手——什么时候轮到他教你东西了？', effects: { nursingSkill: 1, security: 1 } },
+          { name: '饭桌辩论', text: '他开始跟你辩论：高考制度、内卷、他喜欢的主播、你看不懂的亚文化。\n"你不懂。"他说。你刚要反驳，忽然想起：你爸妈当年也听不懂你的磁带和金庸。', effects: { marriage: 1 } },
+          { name: '深夜长谈', text: '一个不用上晚自习的晚上，他忽然话很多：讲他的困惑、未来的迷茫、以及"其实我知道你们不容易"。\n你握着茶杯听了一个小时，没敢接话——怕一接，这个频道就关了。', effects: { security: 2, marriage: 2 } },
+        ];
+        const scene = util.pick(scenes);
+        return {
+          title: `代际时差：${scene.name}`,
+          art: { pose: '青年', expr: '平静', outfit: '家居服', scene: '家中' },
+          text: scene.text,
+          choices: [
+            { text: '认真听，少说', effects: { ...scene.effects, nursingSkill: 1 }, result: '你发现了一个秘密：十七岁的孩子不需要指导，需要观众。而你是他唯一的终身观众。' },
+            { text: '用你的人生经验给他指路', effects: {}, result: '"我们那时候……"你讲了十分钟。他听完说："时代不一样了，妈/爸。"\n你说"道理是一样的"——他笑了笑，没反驳。那笑里有敬爱，也有距离。' },
+          ],
+        };
+      },
+    },
   ];
 
   // 导出内容池给事件编辑器的"数据池"面板（只读展示）

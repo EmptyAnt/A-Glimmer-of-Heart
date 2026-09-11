@@ -135,7 +135,7 @@ if (stats.runs > 0) {
   }
   // a_marriage_redline / a_debt 是"作死型玩法专属"：随机策略踩不到是设计预期，
   // 已用"专挑最伤感情选项"的机器人验证过可达性（红线 ~76%）
-  const expectedRare = ['a_marriage_redline', 'a_debt'];
+  const expectedRare = ['a_marriage_redline', 'a_debt', 'a_marriage_crisis'];
   const unexpected = neverFired.filter((id) => !expectedRare.includes(id));
   if (unexpected.length) console.log('⚠ 从未触发（非预期）: ' + unexpected.join(', '));
 

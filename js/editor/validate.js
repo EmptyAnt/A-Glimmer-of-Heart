@@ -21,14 +21,24 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
   function mockStates() {
     const careModes = [null, 'center', 'yuesao', 'grandma', 'grandma2', 'daycare', 'nanny', 'stayhome', 'self'];
     const feedings = ['mu', 'nai', 'mix'];
+    // 种子 flag 组合：撒谎链双态/早恋双态等，让条件分支文案都能在校验时被生成到
+    const flagCombos = [
+      {},
+      { '诚实被温柔对待': { day: 50, source: 'mock' }, '早恋·阳光处理': { day: 200, source: 'mock' } },
+      { '第一颗隐瞒种子': { day: 50, source: 'mock' }, '谎言升级': { day: 100, source: 'mock' }, '早恋·地下化': { day: 200, source: 'mock' } },
+      { '二胎计划': { day: 100, source: 'mock' }, '屏幕规则': { day: 150, source: 'mock' }, '兴趣深耕': { day: 120, source: 'mock' } },
+    ];
     const states = [];
     for (const stage of G.CONFIG.STAGES.filter((s) => s.ticks !== undefined)) {
+      let idx = 0;
       for (const care of careModes) {
         const s = G.state.createGame({ presetId: 'zhongchan', perspective: 'papa', papaName: 'a', mamaName: 'b', nickname: 'c' });
         s.day = stage.startTick + Math.floor(stage.ticks / 2);
         s.family.careMode = care;
         s.child.feedingMode = feedings[states.length % feedings.length];
         s.family.money = 1000000; // 让 moneyGte 条件的选项都能生成
+        Object.assign(s.flags, flagCombos[idx % flagCombos.length]);
+        idx++;
         states.push(s);
       }
     }
