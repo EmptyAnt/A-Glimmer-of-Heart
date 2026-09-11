@@ -709,6 +709,9 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       art: { pose: '婴儿', expr: '平静', outfit: '连体衣', scene: '医院' },
       make(state) {
         const wp = Math.round(G.growth.weightPercentile(state));
+        // 派生体重 flag（原在 endGame，现移到首次正式体检时种下）
+        if (wp >= 85 && !state.flags['小胖墩苗子']) state.flags['小胖墩苗子'] = { day: state.day, source: '满月体重冲上 P85' };
+        if (wp <= 12 && !state.flags['瘦小苗子']) state.flags['瘦小苗子'] = { day: state.day, source: '满月体重仍在 P12 以下' };
         const wpText = wp >= 85
           ? '体重冲到了生长曲线的上沿，医生笑着打趣"养得真好"，又补了一句"注意别过度喂养"。'
           : wp <= 15

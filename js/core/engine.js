@@ -142,31 +142,21 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     if (state.day >= totalTicks() - 1) state.ended = true;
   }
 
-  // 满月结算：派生最终 flag（这是"收敛"在结尾的最后一次表演）
+  // 十八年终局：派生最终 flag + 生成孩子的信
   function endGame(state) {
-    const wp = G.growth.weightPercentile(state);
-    if (wp >= 88 && !state.flags['小胖墩苗子']) {
-      state.flags['小胖墩苗子'] = { day: state.day, source: '满月体重冲上 P88 以上' };
-    }
-    if (wp <= 12 && !state.flags['瘦小苗子']) {
-      state.flags['瘦小苗子'] = { day: state.day, source: '满月体重仍在 P12 以下' };
-    }
-    if (state.child.security < 45 && !state.flags['安全感不足(早期)']) {
-      state.flags['安全感不足(早期)'] = { day: state.day, source: '这二十八天里，很多次哭没有得到回应' };
+    // 派生终态 flag（不在满月/某章设——到十八岁才"定型"）
+    if (state.child.security < 45) {
+      state.flags['安全感不足(早期)'] = { day: state.day, source: '很多次的哭，没有得到回应' };
     }
 
     const seeds = Object.entries(state.flags)
-      .filter(([id]) => !id.includes('观察中') && !id.includes('土方')) // 过程性 flag 不进种子清单
+      .filter(([id]) => !id.includes('观察中') && !id.includes('土方'))
       .map(([id, info]) => {
         const meta = G.FLAGS[id] || {};
-        return {
-          id,
-          desc: meta.desc || '（未注册的 flag，未来章节里它也会生长）',
-          preview: meta.preview || '',
-          source: info.source,
-          day: info.day,
-        };
+        return { id, desc: meta.desc || '', preview: meta.preview || '', source: info.source, day: info.day };
       });
+
+    const letter = buildLetter(state);
 
     return {
       perspective: state.perspective,
@@ -175,7 +165,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       birth: { month: state.birthMonth, region: state.region },
       talent: CONFIG.TALENTS.find((t) => t.id === state.child.talent),
       spend: state.stats.spend,
-      weightP: Math.round(wp),
+      weightP: Math.round(G.growth.weightPercentile(state)),
       lengthP: Math.round(G.growth.lengthPercentile(state)),
       weight: state.child.weight,
       length: state.child.length,
@@ -184,6 +174,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       temperamentHint: CONFIG.TEMPERAMENTS.find((t) => t.id === state.child.temperament).hint,
       family: { ...state.family },
       security: state.child.security,
+      letter,
       seeds,
       log: state.log,
       stats: {
@@ -192,6 +183,71 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       },
       pendingLeft: state.pending.length,
     };
+  }
+
+  // ============================================================
+  // 孩子的信：终局的灵魂——不用数字评分，用一封他写给你的信
+  // ============================================================
+  function buildLetter(state) {
+    const f = state.flags;
+    const sec = state.child.security;
+    const talentName = CONFIG.TALENTS.find((t) => t.id === state.child.talent).name;
+    const parent = state.perspective === 'mama' ? '妈' : '爸';
+    const other = state.perspective === 'mama' ? '爸' : '妈';
+
+    // 开头：按撒谎链终态决定称呼和第一句
+    let opening;
+    if (f['诚实被温柔对待'] && !f['谎言升级']) {
+      opening = `${parent}：\n\n写这封信的时候，我在火车上。窗外的风景很快，像这十八年。\n\n我记得的事情，可能比你们以为的多。`;
+    } else if (f['谎言升级']) {
+      opening = `${parent}：\n\n这封信我写了很久。不是不知道写什么——是不知道该不该写给你看。\n\n因为你可能不知道：有些话，我练了很多年才学会怎么不说。`;
+    } else {
+      opening = `${parent}：\n\n到学校了。宿舍比想象的小，但窗户很大。\n\n有些话当面说不出，写下来好像容易一点。`;
+    }
+
+    // 中段1：安全感/被接住
+    let body1;
+    if (f['被接住']) {
+      body1 = `我记得高三那个晚上。你说"跟妈/爸说说"，然后就只是听。\n那个晚上我没有变好——但我开始相信，有人会接住我。\n这件事我大概一辈子都不会忘记，也大概一辈子都说不出口。写在这里，算是说了。`;
+    } else if (sec >= 60) {
+      body1 = `小时候的事我记得不多，但我记得一种感觉：家里是安全的。\n不是没有争吵，是吵完了还在。这种感觉成了我的底色——走得再远，也不怕。`;
+    } else if (f['心理危机']) {
+      body1 = `高三那年，我说过一次"好累"。\n你说"谁不累"。\n你没有恶意，我知道。但那句话之后，我学会了所有的事自己扛。\n现在扛得动了——只是偶尔会想：如果那时候有人坐下来听，我是不是能更早学会哭。`;
+    } else {
+      body1 = `安全感这个东西，我说不清楚自己有多少。\n但每次放假回家，推开门闻到饭的味道，我觉得——嗯，这是我要回来的地方。`;
+    }
+
+    // 中段2：志愿/天赋
+    let body2;
+    if (f['为自己活']) {
+      body2 = `志愿表上那个专业，是${state.perspective === 'mama' ? '你' : '你'}递笔给我、让我自己签的。\n你来送我那天，在站台上没怎么说话。但我看见你哭了——你以为我没回头，其实我回了。\n${talentName}这条路我会好好走。因为是我自己选的，所以怎么走都不算辜负。`;
+    } else if (f['为你活']) {
+      body2 = `专业是你选的，如你所愿。\n我会好好读完它——我答应过的。\n只是偶尔，走过那个专业的教室（画室/操场/机房）的时候，我会停一秒。\n就一秒。然后继续走。这不是抱怨——只是想让你知道：那一秒，是真的。`;
+    } else {
+      body2 = `大学的专业，不好也不坏——像大多数人的大多数选择。\n但我找到了一件课外的事，做得挺开心。${talentName}——你以前好像就说过，我在这个上面有点不一样。`;
+    }
+
+    // 中段3：婚姻/离异
+    let body3;
+    if (f['婚姻·离异']) {
+      body3 = `关于你和${other}的事。\n我小时候以为你们不知道我知道。后来才明白：你们只是假装不知道我知道。\n我不怪你们。两个人走不下去，比一个人走更累。\n只是——高考那天你们都来了，隔着人群没有说话。我在考场里想了三分钟这件事，然后开始做题。\n那三秒钟的停顿，是我给你们的全部。以后会不会更多——看你们，也看我。`;
+    } else if (state.family.marriage >= 60) {
+      body3 = `你和${other}偶尔还是会吵。但吵完了，${other}会给你倒杯水，你会给${other}削个苹果。\n我从你们身上学到的最重要的事，不是不吵架——是吵完了还在。\n以后我如果喜欢上一个人，也照这个标准来。`;
+    } else {
+      body3 = `你和${other}，不好不坏。有时候我在想，你们是因为我才在一起的这么久，还是因为习惯了。\n这个问题没有答案，我也不需要答案。你们是你们，我是我。`;
+    }
+
+    // 结尾：按整体基调
+    let closing;
+    if (f['诚实被温柔对待'] && sec >= 55 && !f['心理危机']) {
+      closing = `\n${parent}，谢谢你。\n不是谢谢你的钱（虽然确实花了很多），是谢谢你在我打翻牛奶的时候说"没关系"。\n那句话我用了十八年来验证——它是对的。\n\n放假我就回来。\n\n${state.child.name}\n写于开往大学的火车上`;
+    } else if (f['谎言升级'] || f['心理危机']) {
+      closing = `\n${parent}，这封信到这里。\n不是结尾——是逗号。我们还有很多年，可以慢慢学会怎么把话说出来。\n我正在学。希望你也是。\n\n放假的时候，我回来吃饭。\n\n${state.child.name}\n写于开往大学的火车上`;
+    } else {
+      closing = `\n${parent}，我到站了要。\n车快停了，就写到这。\n冰箱里有${other}做的菜，帮我热一下——我大概还有四十分钟到家。\n\n${state.child.name}\n写于开往大学的火车上`;
+    }
+
+    return { opening, body1, body2, body3, closing };
   }
 
   G.engine = { advanceDay, resolveEvent, finishDay, endGame, weeklyConsumableCost, stageOf, totalTicks };

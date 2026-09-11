@@ -211,6 +211,35 @@ button.ghost { background: transparent; color: var(--accent); border: 1px solid 
 .end-stats { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; }
 .end-stats b { display: block; font-size: 20px; color: var(--accent); }
 
+/* 孩子的信 */
+.letter-box {
+  background: #fdf9f0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 28px 26px;
+  margin: 14px 0;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+.letter-box::before {
+  content: '✉';
+  position: absolute;
+  top: -12px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  background: var(--bg);
+  padding: 0 10px;
+  color: var(--accent);
+}
+.letter-text {
+  font-family: "Kaiti SC", "KaiTi", "FangSong", serif;
+  font-size: 15px;
+  line-height: 2.2;
+  color: #3a3530;
+  white-space: pre-wrap;
+  letter-spacing: 0.5px;
+}
+
 /* ---------- 阶段主题色 ----------
    body[data-stage] 切换整套 CSS 变量。当前原型只玩月子期；
    后续八个阶段的配色已预配置：从暖橘（襁褓）一路走向沉稳（成年），

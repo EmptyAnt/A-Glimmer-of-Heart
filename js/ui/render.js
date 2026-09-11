@@ -192,7 +192,12 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     const items = [...state.log].reverse();
     for (const item of items) {
       const row = el('div', item.hl ? 'log-item hl' : 'log-item');
-      row.appendChild(el('span', 'd', `第${item.day + 1}天`));
+      const dayLabel = (() => {
+        const st = G.engine.stageOf(item.day);
+        const tick = item.day - st.startTick + 1;
+        return `${st.name.slice(0, 2)}·${tick}${st.unitLabel}`;
+      })();
+      row.appendChild(el('span', 'd', dayLabel));
       if (item.title) row.appendChild(el('span', 't', `【${item.title}】`));
       row.appendChild(el('span', null, item.text));
       container.appendChild(row);
@@ -388,78 +393,69 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     box.appendChild(el('h1', null, '十八岁了'));
     box.appendChild(el('div', 'sub center', '—— 从呱呱坠地，到站台上那个不回头的背影 ——'));
 
-    const body = el('div', 'end-section');
-    body.appendChild(el('h2', null, '满月体检报告'));
-    body.appendChild(el('div', null, `体重 ${report.weight}kg（${util.fmtPct(report.weightP)}）｜身长 ${report.length.toFixed(1)}cm（${util.fmtPct(report.lengthP)}）`));
-    body.appendChild(el('div', null, `这个月你大概也猜到了：这是个「${report.constitution}」的孩子。`));
-    if (report.talent) {
-      body.appendChild(el('div', null, `他的天赋是「${report.talent.name}」——${report.talent.hint}。`));
-      body.appendChild(el('div', 'sub', '天赋没有好坏，只有赛道。它将在小学的兴趣、初中的分流、高考的志愿里，一次次被兑现。'));
+    // ======== 灵魂：孩子的信 ========
+    if (report.letter) {
+      const letterBox = el('div', 'letter-box');
+      const L = report.letter;
+      const full = [L.opening, '', L.body1, '', L.body2, '', L.body3, '', L.closing].join('\n');
+      const pre = el('pre', 'letter-text');
+      pre.textContent = full;
+      letterBox.appendChild(pre);
+      box.appendChild(letterBox);
     }
-    body.appendChild(el('div', null, `而他的气质是「${report.temperament}」——${report.temperamentHint}`));
+
+    // ======== 数据报告 ========
+    const body = el('div', 'end-section');
+    body.appendChild(el('h2', null, '他的档案'));
+    body.appendChild(el('div', null, `天赋「${report.talent ? report.talent.name : '—'}」｜气质「${report.temperament}」｜体质「${report.constitution}」`));
+    body.appendChild(el('div', null, `身高 ${report.length.toFixed(1)}cm（${util.fmtPct(report.lengthP)}）｜体重 ${report.weight}kg（${util.fmtPct(report.weightP)}）`));
+    body.appendChild(el('div', null, `出生：${report.birth.month}月 · ${report.birth.region === 'north' ? '北方' : '南方'}｜安全感 ${Math.round(report.security)}`));
     box.appendChild(body);
 
     const fam = el('div', 'end-section');
-    fam.appendChild(el('h2', null, '这一家的近况'));
-    fam.appendChild(el('div', null, `存款：${util.fmtMoney(report.family.money)}`));
-    fam.appendChild(el('div', null, `夫妻感情 ${Math.round(report.family.marriage)} ／ 老人关系 ${Math.round(report.family.inLaw)} ／ ${report.perspective === 'mama' ? '我的状态' : '她的状态'} ${Math.round(report.family.mama)} ／ 面子 ${Math.round(report.family.face)}`));
-    fam.appendChild(el('div', 'sub', `孩子安全感：${securityVibe(report.security)}（${Math.round(report.security)}）`));
+    fam.appendChild(el('h2', null, '这一家'));
+    fam.appendChild(el('div', null, `存款 ${util.fmtMoney(report.family.money)}｜夫妻感情 ${Math.round(report.family.marriage)}｜面子 ${Math.round(report.family.face)}`));
     box.appendChild(fam);
 
-    // 育儿账本：按消费分类汇总这二十八天的支出
     const ledger = el('div', 'end-section');
-    ledger.appendChild(el('h2', null, '育儿账本 · 这二十八天'));
+    ledger.appendChild(el('h2', null, `育儿账本 · 十八年`));
     const spendEntries = Object.entries(report.spend || {}).sort((a, b) => b[1] - a[1]);
-    if (spendEntries.length === 0) {
-      ledger.appendChild(el('div', 'sub', '一分钱没花？这二十八天过得也太顺了。'));
-    }
-    for (const [kind, amount] of spendEntries) {
+    for (const [kind, amount] of spendEntries.slice(0, 5)) {
       ledger.appendChild(el('div', null, `${CONFIG.SPEND_KINDS[kind] || kind}：${util.fmtMoney(amount)}`));
     }
     const spendTotal = spendEntries.reduce((sum, [, v]) => sum + v, 0);
     if (spendTotal > 0) ledger.appendChild(el('div', null, `合计：${util.fmtMoney(spendTotal)}`));
-    if (report.gender === 'girl' && (report.spend.clothes || 0) > 0) {
-      ledger.appendChild(el('div', 'sub', '衣柜里她的衣服已经比你的多了。这只是第一个月。'));
-    }
-    if (report.gender === 'boy' && (report.spend.toys || 0) > 0) {
-      ledger.appendChild(el('div', 'sub', '摇铃和健身架已经占领了客厅。这只是先锋部队。'));
-    }
     box.appendChild(ledger);
 
     const seeds = el('div', 'end-section');
     seeds.appendChild(el('h2', null, `种下的种子（${report.seeds.length}）`));
-    seeds.appendChild(el('div', 'sub', '这些伏笔会在未来章节发芽——现在只能看到预告。'));
-    if (report.seeds.length === 0) {
-      seeds.appendChild(el('div', null, '平平淡淡二十八天，什么雷也没埋，什么花也没种。'));
-    }
-    for (const seed of report.seeds) {
+    seeds.appendChild(el('div', 'sub', '每一颗种子都是你们一起选的。'));
+    for (const seed of report.seeds.slice(0, 12)) {
       const item = el('div', 'seed-item');
       item.appendChild(el('div', 'seed-name', `◆ ${seed.id}`));
-      item.appendChild(el('div', 'seed-src', `来源（第${seed.day + 1}天）：${seed.source}`));
-      if (seed.desc) item.appendChild(el('div', 'seed-src', seed.desc));
-      if (seed.preview) item.appendChild(el('div', 'seed-preview', `发芽预告：${seed.preview}`));
+      item.appendChild(el('div', 'seed-src', `${seed.source}`));
+      if (seed.preview) item.appendChild(el('div', 'seed-preview', seed.preview));
       seeds.appendChild(item);
     }
+    if (report.seeds.length > 12) seeds.appendChild(el('div', 'sub', `……还有 ${report.seeds.length - 12} 颗种子`));
     box.appendChild(seeds);
 
     const album = el('div', 'end-section');
-    album.appendChild(el('h2', null, '时光相册 · 高光'));
+    album.appendChild(el('h2', null, '时光相册'));
     for (const item of report.log.filter((l) => l.hl)) {
       const row = el('div', 'log-item hl');
-      row.appendChild(el('span', 'd', `第${item.day + 1}天`));
       row.appendChild(el('span', null, item.text));
       album.appendChild(row);
     }
     box.appendChild(album);
 
     const stats = el('div', 'end-section');
-    stats.appendChild(el('h2', null, '运行数据（开发者）'));
+    stats.appendChild(el('h2', null, '运行数据'));
     const statRow = el('div', 'end-stats');
     const statDefs = [
-      [report.stats.anchor, '主线锚点'],
-      [report.stats.templateTotal, '模板流水事件'],
-      [report.stats.illness, '疾病/后续事件'],
-      [report.pendingLeft, '未发芽的延迟后果'],
+      [report.stats.anchor, '锚点'],
+      [report.stats.templateTotal, '流水事件'],
+      [report.stats.illness, '疾病'],
     ];
     for (const [num, label] of statDefs) {
       const cell = el('div');
@@ -468,7 +464,6 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       statRow.appendChild(cell);
     }
     stats.appendChild(statRow);
-    stats.appendChild(el('div', 'sub', '模板分布：' + Object.entries(report.stats.template).map(([k, v]) => `${k.replace('tpl_', '')}×${v}`).join('　')));
     box.appendChild(stats);
 
     const btn = el('button', null, '再来一局（命运重掷）');
