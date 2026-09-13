@@ -1814,6 +1814,26 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       ],
     },
 
+    // ---------- 幼儿园的"喜欢" ----------
+    {
+      id: 'a_kg_crush', kind: 'anchor', priority: 'main', day: [28, 33], stage: 'kindergarten',
+      title: '"{parent}，我喜欢一个人"',
+      art: { pose: '幼儿', expr: '笑', outfit: '园服', scene: '家中' },
+      text: '接他回家的路上，他忽然拉了拉你的手，声音压得很低——虽然整条街只有你们两个人："{parent}，我跟你说个秘密。"\n"我们班的王雨晴，我最喜欢她了。"\n他说这话的时候眼睛亮晶晶的，认真到你想笑又不敢笑。\n"她今天借了我一块橡皮。是香味的。"',
+      choices: [
+        {
+          text: '"她也喜欢你吗？"',
+          effects: { security: 2, setFlags: { '童年心动': '五岁，喜欢一个有香味橡皮的女孩' } },
+          result: '"她说我是她最好的朋友！"他说得斩钉截铁。\n"好朋友"和"喜欢"在五岁的字典里是同一个词——这可能是人一辈子最纯粹的一次心动。',
+        },
+        {
+          text: '"好好学习，别想这些。"',
+          effects: { security: -1 },
+          result: '他"哦"了一声，把后半句话咽了回去。\n那天晚上他画了一幅画：一个扎辫子的小人和一个短发的小人手拉手。他没给你看——是你后来收拾桌子的时候发现的。',
+        },
+      ],
+    },
+
     // ---------- 毕业（本章终章） ----------
     {
       id: 'a_kg_graduation', kind: 'anchor', priority: 'main', day: [34, 35], stage: 'kindergarten',
@@ -1968,6 +1988,31 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         text: '自己的作业自己负责，写不完自己跟老师交代',
         effects: { habit: -4, security: 1 },
         result: '他被老师留堂两次之后，开始自己记作业了。习惯分低开高走——但代价是前两个月的成绩单不太好看。',
+      },
+    ],
+  },
+
+  // ---------- 小学：情窦初开 ----------
+  {
+    id: 'a_primary_crush', kind: 'anchor', priority: 'main', day: [14, 22], stage: 'primary',
+    title: '书包里的信',
+    art: { pose: '少年', expr: '平静', outfit: '校服', scene: '家中' },
+    text: '你帮他理书包，从语文课本里掉出来一张折成心形的纸。\n打开：铅笔写的"我喜欢你"，落款是同桌的名字。\n他把纸条一把抢过去，脸红到了耳根："你别看！"\n但他没有否认。',
+    choices: [
+      {
+        text: '"挺好的。她学习好不好？"',
+        effects: { security: 3, setFlags: { '童年心动': '四年级，心形的纸条' } },
+        result: '他愣了一下，然后笑了——他以为你会骂他。\n"还行吧。"他低头扒饭，嘴角翘着。\n你没再追问。有些话题开了头就够了。',
+      },
+      {
+        text: '"这么小就想这些？以后不许了。"',
+        effects: { security: -3, setFlags: { '青春期·封闭': '心形的纸条被没收了' } },
+        result: '他"嗯"了一声，把那张纸条交给了你。\n你把它扔进了垃圾桶——连同他下次再跟你分享心事的可能。',
+      },
+      {
+        text: '什么都没说，把纸条放回原处',
+        effects: { security: 2 },
+        result: '你把书包理好，那张纸条放在原来的位置。\n他不知道你看见了——或者知道，只是你没说。\n有些事情不需要大人参与。它自己会长。',
       },
     ],
   },
@@ -3104,10 +3149,11 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         const score = G.reportScore(state, 3);
         const forSelf = Boolean(state.flags['为自己活']);
         let uniFlag, uniText;
-        if (score >= 87) { uniFlag = '大学·名校'; uniText = '顶尖学府。信封上那枚校徽，你在新闻联播里见过。'; }
-        else if (score >= 70) { uniFlag = '大学·一本'; uniText = '一所不错的一本。校名念出来，亲戚们都会点头。'; }
-        else if (score >= 52) { uniFlag = '大学·二本/高职'; uniText = '一所普通二本。快递员比你们先看到"录取"两个字。'; }
-        else { uniFlag = '复读'; uniText = '分数不理想，落到了专科线。他把自己关了一晚上，出来说："我想复读。"'; }
+        if (score >= 88) { uniFlag = '大学·985/211'; uniText = '顶尖学府。信封上那枚校徽，你在新闻联播里见过。亲戚群里有人@你了。'; }
+        else if (score >= 75) { uniFlag = '大学·一本'; uniText = '一所不错的一本。校名念出来，亲戚们都会点头。'; }
+        else if (score >= 60) { uniFlag = '大学·二本'; uniText = '一所普通二本。快递员比你们先看到"录取"两个字。你说"挺好挺好"，语气里那点遗憾他自己也听见了。'; }
+        else if (score >= 48) { uniFlag = '大学·三本'; uniText = '一所民办三本。录取通知书的质感不输名校——学费也不输：一年三万，四年十二万。你看着那个数字，把想说的话咽了回去。'; }
+        else { uniFlag = '大学·大专'; uniText = '大专。三年制，学费不高，专业很实——机电一体化。你说"也挺好"，这次是真的也挺好，因为你已经学会了在不确定里找确定。'; }
         return {
           text: `七月末的一个下午，EMS 的车停在楼下。\n红色的大信封，比成绩单厚，比成绩单轻。他拆开，看了很久，然后递给你。\n${uniText}${forSelf ? '\n专业那一栏，印的是他自己填的那个名字。' : ''}`,
           choices: [
@@ -3254,6 +3300,10 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       art: { pose: '青年', expr: '笑', outfit: '正式', scene: '家门口' },
       make(state) {
         const boy = state.child.gender === 'boy';
+        // 15% 的大学恋情走不到最后——这是不婚线/分手线的入口种子
+        if (util.chance(0.85)) {
+          state.flags['恋爱走到最后'] = { day: state.day, source: '大学恋情走到了谈婚论嫁' };
+        }
         return {
           text: `微信消息只有五个字："我带个人回来。"\n你盯着这条消息看了两分钟，然后开始打扫卫生。\n门开了。${boy ? '他身后' : '她身后'}站着那个${boy ? '女孩' : '男生'}——比照片好看（他/她发过合照，你存下来了但假装没存）。`,
           choices: [
@@ -3339,8 +3389,76 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       ],
     },
 
+    // ---------- 不婚宣言 ----------
+    {
+      id: 'a_no_marriage', kind: 'anchor', priority: 'main', day: [4, 7], stage: 'adult',
+      conditions: { notFlags: ['恋爱走到最后'] },
+      title: '"我不打算结婚"',
+      art: { pose: '青年', expr: '平静', outfit: '正装', scene: '家中' },
+      text: '某个普通的饭桌。他/她忽然说："{parent}，我跟你们说个事。"\n"我不打算结婚。不是没遇到合适的——是我想清楚了，一个人过挺好的。"\n你手里的筷子停了三秒。你想到的不是"传宗接代"那些大词，而是：以后过年，饭桌上就少了一个人。',
+      choices: [
+        {
+          text: '"你想清楚了就好。你的人生你做主。"',
+          effects: { security: 5, marriage: 2, setFlags: { '不婚主义': '被尊重的选择' } },
+          result: '他/她看着你，眼眶红了一下——她/他做好了吵架的准备，没想到等来的是这句话。\n"谢谢。"轻到几乎听不见。\n后来他/她一个人旅行、养猫、升职、换了三座城市。每次视频通话，你都看见一种平静——不是没有孤独，是和孤独达成了协议。',
+        },
+        {
+          text: '"你才多大就说了这种话？以后会遇到对的人的。"',
+          effects: { security: -3, setFlags: { '不婚主义': '被催婚的坚持——TA会证明给你看' } },
+          result: '他/她笑了笑，没争。\n但你发现，从那以后，有些话他/她不再跟你说了——不是在赌气，是在避免一个永远不会有结论的讨论。\n你依然爱他/她。只是你们之间的频道，关了一个。',
+        },
+      ],
+    },
+
+    // ---------- 就业现实：学历≠饭碗 ----------
+    {
+      id: 'a_job_reality', kind: 'anchor', priority: 'main', day: [2, 5], stage: 'adult',
+      title: '投了两百份简历之后',
+      art: { pose: '青年', expr: '平静', outfit: '正装', scene: '出租屋' },
+      make(state) {
+        const elite = Boolean(state.flags['大学·985/211']);
+        const vocational = Boolean(state.flags['大学·大专'] || state.flags['大学·三本']);
+        if (elite && util.chance(0.35)) {
+          return {
+            text: '他/她投了两百份简历，收到的面试邀请不到十个。\n"985硕士，秋招全军覆没。"朋友圈里这样的帖子越来越多。\n他/她开始怀疑：那张录取通知书，到底是入场券还是长衫？',
+            choices: [
+              {
+                text: '"先找个差不多的干着，骑驴找马。"',
+                effects: { security: 1, setFlags: { '就业·学历倒挂': '985毕业，先做了月薪六千的运营' } },
+                result: '他/她找到了一份和专业无关的工作——月薪六千，双休，五险一金。同事都是二本三本，没人问他是哪个学校的。\n半年后他/她说："其实也没那么差。"\n孔乙己的长衫，有时候是自己脱下来的。',
+              },
+              {
+                text: '"再等等，总会有的。你的学历不会白读。"',
+                effects: { energy: -1, setFlags: { '就业·学历倒挂': '海投第200天，还在等' } },
+                result: '又投了三个月。房租在扣，存款在减，面试一轮比一轮远。\n你开始后悔当年说过"考上好大学就什么都好了"——那句话你自己也不信，但你说的时候，他/她信了。',
+              },
+            ],
+          };
+        }
+        if (vocational && util.chance(0.55)) {
+          return {
+            text: '他/她没走投简历的独木桥——大专学的机电维修，校企合作直接进了厂。\n你原以为"只读了大专"是你最遗憾的事。直到第一个月工资到账：一万四。\n比你当年工作五年的月薪还高。',
+            choices: [
+              {
+                text: '"好好干。手艺是自己的。"',
+                effects: { security: 3, setFlags: { '就业·蓝领逆袭': '机电维修，月薪一万四起' } },
+                result: '越干越顺手，第二年考了焊工证，工资又涨了。\n你偶尔想起当年为了中考分数发愁的那些夜晚——现在你只想笑。\n有些孩子不是不会读书，是不该只读书。',
+              },
+              {
+                text: '"工作虽好，还是应该升个学历。"',
+                effects: { security: -1 },
+                result: '他/她报了专升本，白天上班晚上刷题。\n你说的没错——学历确实有用。但他/她也知道：你说的"应该"，和当年那个"考上就好了"一样，是同一个句式。',
+              },
+            ],
+          };
+        }
+        return { choices: [{ text: '日子照常过', effects: {}, result: '工作找到了，不好不坏——像大多数人一样。' }] };
+      },
+    },
+
     {
       id: 'a_partner_visit', kind: 'anchor', priority: 'main', day: [6, 10], stage: 'adult',
+      conditions: { notFlags: ['不婚主义'] },
       title: '"我们想跟你们说件事"',
       art: { pose: '青年', expr: '笑', outfit: '正装', scene: '家中' },
       make(state) {
@@ -3365,6 +3483,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     {
       id: 'a_bride_price', kind: 'anchor', priority: 'main', day: [10, 13], stage: 'adult',
+      conditions: { notFlags: ['不婚主义'] },
       title: '彩礼',
       art: { pose: '青年', expr: '平静', outfit: '正装', scene: '餐厅' },
       make(state) {
@@ -3394,6 +3513,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     {
       id: 'a_house', kind: 'anchor', priority: 'main', day: [12, 14], stage: 'adult',
+      conditions: { notFlags: ['不婚主义'] },
       title: '首付',
       art: { pose: '青年', expr: '平静', outfit: '正装', scene: '银行' },
       text: '首付缺口：四十万。\n你的存款加上养老钱——够。但付完之后，你们的退休计划要重写。',
@@ -3419,6 +3539,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     {
       id: 'a_wedding', kind: 'anchor', priority: 'main', day: [14, 15], stage: 'adult',
+      conditions: { notFlags: ['不婚主义'] },
       title: '婚礼',
       art: { pose: '青年', expr: '笑', outfit: '礼服', scene: '婚礼现场' },
       make(state) {
@@ -3445,6 +3566,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     {
       id: 'a_grandchild', kind: 'anchor', priority: 'main', day: [15, 15], stage: 'adult',
+      conditions: { notFlags: ['不婚主义'] },
       title: '又一个电话',
       art: { pose: '青年', expr: '笑', outfit: '新衣', scene: '医院' },
       text: '电话响起时你在做饭。\n"妈/爸——"声音有点抖，"生了。六斤八两。"\n你的手还握着锅铲，锅里的菜还在响。但你什么都听不见了——只听见电话那头传来一个婴儿的哭声。\n\n你做外婆/奶奶了。或者，你做爷爷/外公了。\n\n你放下锅铲，关了火，拿起外套。妻子/丈夫问你干什么去。\n"抱孙子/孙女。"你说。',
