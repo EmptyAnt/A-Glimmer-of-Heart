@@ -47,7 +47,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
   // 文件名规范化：去空格、斜杠转连字符
   function fileName(...parts) {
-    return parts.filter(Boolean).join('-').replace(/\s+/g, '').replace(/\//g, '-') + '.png';
+    return parts.filter(Boolean).join('-').replace(/\s+/g, '').replace(/\//g, '-');
   }
 
   const cache = {};
@@ -69,24 +69,32 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
   }
 
   // 解析一个 art 对象 → { sceneUrl, poseUrl, exprUrl }（均可能为 null）
+  // 优先 SVG（内置程序化美术），画师放入同名 PNG 会覆盖（probe 顺序：png → svg）
   async function resolve(art) {
     if (!art) return {};
-    const sceneUrl = url('scenes', art.scene);
-    // 优先 精确组合（pose-outfit），退回 pose 单人立绘
-    const poseCombo = art.outfit ? url('poses', art.pose, art.outfit) : null;
-    const poseSolo = url('poses', art.pose);
-    const exprUrl = url('exprs', art.expr);
+    const stem = fileName(art.scene);
+    const poseStem = fileName(art.pose, art.outfit);
+    const poseSoloStem = fileName(art.pose);
+    const exprStem = fileName(art.expr);
 
-    const [sceneOk, comboOk, soloOk, exprOk] = await Promise.all([
-      probe(sceneUrl),
-      poseCombo ? probe(poseCombo) : Promise.resolve(false),
-      probe(poseSolo),
-      probe(exprUrl),
+    async function probeAny(kind, stem2) {
+      for (const ext of ['.png', '.svg']) {
+        const u = `assets/${kind}/${stem2}${ext}`;
+        if (await probe(u)) return u;
+      }
+      return null;
+    }
+
+    const [sceneUrl, poseCombo, poseSolo, exprUrl] = await Promise.all([
+      probeAny('scenes', stem),
+      poseStem !== poseSoloStem ? probeAny('poses', poseStem) : Promise.resolve(null),
+      probeAny('poses', poseSoloStem),
+      probeAny('exprs', exprStem),
     ]);
     return {
-      sceneUrl: sceneOk ? sceneUrl : null,
-      poseUrl: comboOk ? poseCombo : (soloOk ? poseSolo : null),
-      exprUrl: exprOk ? exprUrl : null,
+      sceneUrl,
+      poseUrl: poseCombo || poseSolo,
+      exprUrl,
     };
   }
 
