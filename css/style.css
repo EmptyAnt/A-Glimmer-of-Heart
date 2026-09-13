@@ -152,6 +152,26 @@ button.ghost { background: transparent; color: var(--accent); border: 1px solid 
   align-items: center;
   justify-content: center;
   margin-bottom: 14px;
+  overflow: hidden;
+  position: relative;
+}
+.art-block.has-art { border: 1px solid var(--line); }
+.art-block .art-scene {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.96);
+}
+.art-block .art-pose {
+  position: relative; z-index: 2;
+  max-width: 86%; max-height: 92%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+}
+.art-block .art-expr {
+  position: absolute; z-index: 3;
+  width: 34%; right: 4%; top: 6%;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
 }
 .art-block .emoji { font-size: 52px; line-height: 1.2; }
 .art-block .art-key { font-size: 10px; color: var(--ink-light); text-align: center; line-height: 1.5; }

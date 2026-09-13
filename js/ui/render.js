@@ -33,10 +33,43 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     parent.appendChild(bar);
   }
 
+  // art 区块：优先用 assets/ 下的图片（背景板+立绘+表情贴片合成），缺图降级 emoji
   function artBlock(art) {
     const box = el('div', 'art-block');
-    box.appendChild(el('div', 'emoji', EXPR_EMOJI[art.expr] || '🙂'));
-    box.appendChild(el('div', 'art-key', `体态·${art.pose}｜表情·${art.expr}\n服装·${art.outfit}｜场景·${art.scene}`));
+    // 降级内容先渲染（同步，不闪空）
+    const emoji = el('div', 'emoji', EXPR_EMOJI[art.expr] || '🙂');
+    const key = el('div', 'art-key', `体态·${art.pose}｜表情·${art.expr}\n服装·${art.outfit}｜场景·${art.scene}`);
+    box.append(emoji, key);
+
+    // 异步探测图片，命中则替换
+    if (G.assets) {
+      G.assets.resolve(art).then((r) => {
+        if (r.sceneUrl || r.poseUrl) {
+          box.textContent = '';
+          box.classList.add('has-art');
+          if (r.sceneUrl) {
+            const bg = el('div', 'art-scene');
+            bg.style.backgroundImage = `url('${r.sceneUrl}')`;
+            box.appendChild(bg);
+          }
+          if (r.poseUrl) {
+            const pose = el('img', 'art-pose');
+            pose.src = r.poseUrl;
+            pose.alt = `${art.pose}·${art.outfit || ''}`;
+            box.appendChild(pose);
+            if (r.exprUrl) {
+              const ex = el('img', 'art-expr');
+              ex.src = r.exprUrl;
+              ex.alt = art.expr;
+              box.appendChild(ex);
+            }
+          } else {
+            // 无立绘但有背景：emoji 保留在背景上
+            box.appendChild(emoji);
+          }
+        }
+      });
+    }
     return box;
   }
 
