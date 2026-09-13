@@ -95,6 +95,16 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         }
       }
       state.log.push({ day: state.day, title: '', text: `工资到账：${util.fmtMoney(state.family.monthlyIncome)}${tuitionNote}。` });
+      // 银行贷款月供：随工资自动扣款，还清为止
+      if (state.family.loanRemaining > 0) {
+        const pay = Math.min(2200, state.family.loanRemaining);
+        state.family.loanRemaining -= pay;
+        state.family.money -= pay;
+        const paidOff = state.family.loanRemaining === 0;
+        const note = '银行月供扣款：-' + util.fmtMoney(pay)
+          + (paidOff ? '（还清了。这一刻值得记下来。）' : '（还剩 ' + util.fmtMoney(state.family.loanRemaining) + '）');
+        state.log.push({ day: state.day, title: '', text: note });
+      }
     }
 
     // 固定开销追账式结算：跨月 tick（幼儿期一跳 30 天）也要把中间的每一周都补上
@@ -333,5 +343,32 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     return { opening, body1, body2, body3, closing };
   }
 
-  G.engine = { advanceDay, resolveEvent, finishDay, endGame, weeklyConsumableCost, stageOf, totalTicks };
+  // ===== 主动借贷（家庭面板按钮，钱紧时的自救入口）=====
+  // 向父母借钱：无利息，但伤老人关系与面子；最多 3 次
+  function borrowFromParents(state) {
+    const f = state.family;
+    if (f.parentLoans >= 3) return { ok: false, msg: '父母已经帮了三次，实在开不了这个口了。' };
+    f.parentLoans += 1;
+    G.effects.apply(state, {
+      money: 10000, inLaw: -4, face: -3,
+      setFlags: { '接济': '钱紧的时候，向老人开的口' },
+    });
+    state.log.push({ day: state.day, title: '', text: '向父母借了 ¥10,000。钱到账很快，"省着点花"这句也到得很快。' });
+    return { ok: true };
+  }
+
+  // 银行贷款：额度大，带利息月供（每月自动扣 ¥2,200 直到还清）
+  function takeBankLoan(state) {
+    const f = state.family;
+    if (f.loanRemaining >= 40000) return { ok: false, msg: '银行说：您的负债已经不低了。' };
+    f.loanRemaining += 22000;
+    G.effects.apply(state, {
+      money: 20000,
+      setFlags: { '卡债': '银行贷款，月供 ¥2,200' },
+    });
+    state.log.push({ day: state.day, title: '', text: '银行贷款 ¥20,000 到账。月供 ¥2,200，还清为止。' });
+    return { ok: true };
+  }
+
+  G.engine = { advanceDay, resolveEvent, finishDay, endGame, weeklyConsumableCost, stageOf, totalTicks, borrowFromParents, takeBankLoan };
 })(GAME);

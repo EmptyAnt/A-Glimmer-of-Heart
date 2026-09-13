@@ -68,6 +68,9 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     G.ui.renderCalmDay($('event-area'), nextDay);
   }
 
+  // 借贷等面板内操作触发全局刷新
+  window.addEventListener('game-refresh', () => { if (state) refreshPanels(); });
+
   document.addEventListener('DOMContentLoaded', () => {
     document.body.dataset.stage = 'newborn';
     G.ui.renderStart($('screen-start'), startGame);

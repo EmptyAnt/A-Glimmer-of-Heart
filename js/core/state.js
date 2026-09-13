@@ -71,13 +71,18 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       family: {
         preset: preset.id,
         money: preset.money,
-        monthlyIncome: Math.round(preset.monthlyIncome * ageMeta.incomeMul), // 年龄档收入系数
+        // 自定义月收入优先；否则预设 × 年龄档收入系数
+        monthlyIncome: opts.monthlyIncomeOverride !== undefined
+          ? opts.monthlyIncomeOverride
+          : Math.round(preset.monthlyIncome * ageMeta.incomeMul),
         energy: CONFIG.DAILY_ENERGY,
         marriage: 70,
         inLaw: 65,
         mama: util.clamp(72 + ageMeta.mamaStart, 0, 100), // 高龄档产后状态起点更低
         face: 50,
         careMode: null,
+        loanRemaining: 0, // 银行贷款未还余额
+        parentLoans: 0, // 已向父母借钱的次数
       },
       child: {
         name: opts.nickname,

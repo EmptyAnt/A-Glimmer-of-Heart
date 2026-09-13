@@ -128,6 +128,39 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       el('span', null, '月子安排'), el('span', null, careModeLabel(state.family.careMode)),
     );
 
+    // 借贷入口：钱紧（<¥5,000）或有未还贷款时出现
+    if (state.family.money < 5000 || state.family.loanRemaining > 0) {
+      const borrowBox = el('div', 'chips');
+      borrowBox.style.marginTop = '8px';
+      const canParents = state.family.parentLoans < 3;
+      const btnParents = el('button', 'ghost', '向父母借 ¥10,000');
+      btnParents.style.fontSize = '11px';
+      btnParents.style.padding = '4px 8px';
+      btnParents.disabled = !canParents;
+      btnParents.title = canParents ? '无利息，但老人关系 -4、面子 -3（最多 3 次）' : '已经开口三次了';
+      btnParents.addEventListener('click', () => {
+        const r = G.engine.borrowFromParents(state);
+        if (r.msg) window.alert(r.msg);
+        window.dispatchEvent(new Event('game-refresh'));
+      });
+      const canLoan = state.family.loanRemaining < 40000;
+      const btnLoan = el('button', 'ghost', '银行贷款 ¥20,000');
+      btnLoan.style.fontSize = '11px';
+      btnLoan.style.padding = '4px 8px';
+      btnLoan.disabled = !canLoan;
+      btnLoan.title = '月供 ¥2,200 随工资自动扣款，还清为止';
+      btnLoan.addEventListener('click', () => {
+        const r = G.engine.takeBankLoan(state);
+        if (r.msg) window.alert(r.msg);
+        window.dispatchEvent(new Event('game-refresh'));
+      });
+      borrowBox.append(btnParents, btnLoan);
+      if (state.family.loanRemaining > 0) {
+        borrowBox.appendChild(el('div', 'sub', `贷款余额 ${util.fmtMoney(state.family.loanRemaining)}`));
+      }
+      familyBox.appendChild(borrowBox);
+    }
+
     // 孩子面板
     childBox.textContent = '';
     childBox.appendChild(el('h3', null, `孩子：${state.child.name}`));
@@ -338,6 +371,18 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     ]);
     box.appendChild(fateForm);
 
+    // 自定义月收入：留空则按家庭预设（受年龄档系数影响）
+    const incomeWrap = el('div', 'name-form');
+    incomeWrap.style.margin = '0 0 8px';
+    const incomeInput = document.createElement('input');
+    incomeInput.type = 'number';
+    incomeInput.placeholder = '自定义月收入（留空=按预设）';
+    incomeInput.min = '0';
+    incomeInput.step = '500';
+    incomeInput.style.width = '240px';
+    incomeWrap.appendChild(incomeInput);
+    box.appendChild(incomeWrap);
+
     const cards = el('div', 'preset-cards');
     let selected = CONFIG.PRESETS[0].id;
     const cardEls = {};
@@ -366,6 +411,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       birthMonth: selects.birthMonth.value ? Number(selects.birthMonth.value) : undefined,
       region: selects.region.value || undefined,
       parentAge: selects.parentAge.value || undefined,
+      monthlyIncomeOverride: incomeInput.value.trim() === '' ? undefined : Math.max(0, Number(incomeInput.value) || 0),
       papaName: inputs.papaName.value.trim() || '陈阳',
       mamaName: inputs.mamaName.value.trim() || '林晚',
       nickname: inputs.nickname.value.trim() || '小汤圆',
