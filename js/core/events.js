@@ -55,8 +55,8 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       if (merged.text !== undefined) event.text = merged.text;
       if (merged.choices !== undefined) event.choices = merged.choices;
     }
-    event.title = resolveText(pickVariant(state, def.title), state);
-    event.text = resolveText(pickVariant(state, def.text), state);
+    event.title = resolveText(pickVariant(state, event.title), state);
+    event.text = resolveText(pickVariant(state, event.text), state);
     event.repeat = def.repeat || null;
     event.choices = (event.choices || []).map((choice) => {
       const result = pickVariant(state, choice.result);
