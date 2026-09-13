@@ -63,7 +63,9 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       }
     }
     if (effects.log) {
-      state.log.push({ day: state.day, title: '', text: effects.log.text, hl: true });
+      // log 文本也要走槽位替换（与 choice.result 同源）
+      const text = G.events && G.events.resolveText ? G.events.resolveText(effects.log.text, state) : effects.log.text;
+      state.log.push({ day: state.day, title: '', text, hl: true });
     }
   }
 

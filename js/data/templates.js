@@ -7,6 +7,8 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 (function (G) {
   const { util } = G;
 
+  const NL = String.fromCharCode(10); // 换行（避免 heredoc 转义问题）
+
   // ---------- 家族一：夜里又哭了（高频核心循环） ----------
   function nightcryReason(state) {
     const t = state.child.temperament;
@@ -43,30 +45,30 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     const matrix = {
       hungry: {
-        hint: '小嘴一张一合地咂着，头转来转去地找。',
-        feed: { text: '奶下肚，十个哈欠打了两个，眼睛一闭就睡了。原来就是饿。', effects: { energy: -1, ...nw } },
-        hold: { text: '抱着颠了二十分钟，放下就醒，抱起又哭——他一直在找奶，只是你没读懂。', effects: { energy: -1, security: 1, ...nw } },
+        hint: '小嘴一张一合地咂着，头转来转去地找——你把手背凑过去，他立刻扭头追着啃。',
+        feed: { text: '奶下肚，十个哈欠打了两个，眼睛一闭就睡了。原来就是饿。' + NL + '放下他的时候你的胳膊已经麻了，但不敢动——像捧着一枚刚拆的雷。', effects: { energy: -1, ...nw } },
+        hold: { text: '抱着颠了二十分钟，放下就醒，抱起又哭——他一直在找奶，只是你没读懂。' + NL + '你的睡衣领子被他啃湿了一片。', effects: { energy: -1, security: 1, ...nw } },
         cryitout,
-        grandma: { text: '婆婆抱着满屋走，"哦——哦——"地哄了半小时。睡着是睡着了，放下的时候全家屏住呼吸。', effects: { inLaw: 2, security: -1, ...nw } },
+        grandma: { text: '婆婆抱着满屋走，"哦——哦——"地哄了半小时。睡着是睡着了，放下的时候全家屏住呼吸——她的腰，第二天疼了一个星期。', effects: { inLaw: 2, security: -1, ...nw } },
       },
       gas: {
-        hint: '两条小腿乱蹬，脸憋得通红，身子扭成一根麻花。',
+        hint: '两条小腿乱蹬，脸憋得通红，身子扭成一根麻花——哭声是一阵一阵的，中间还夹着用力的哼唧。',
         feed: { text: '一喂就呛，"噗"地吐了你一身奶，哭得更凶了——他不是饿，是肚子里有气。', effects: { energy: -1, mama: -2, gasCount: 1, ...nw } },
-        hold: { text: '竖着抱起来拍，背上拍出一个响嗝，紧接着一个悠长的屁。安静了。', effects: { energy: -1, security: 1, nursingSkill: 1, gasCount: 1, ...nw } },
+        hold: { text: '竖着抱起来拍，背上拍出一个响嗝，紧接着一个悠长的屁。安静了。' + NL + '你保持着拍嗝的姿势又站了五分钟，才敢相信真的好了。', effects: { energy: -1, security: 1, nursingSkill: 1, gasCount: 1, ...nw } },
         cryitout,
         grandma: { text: '婆婆搓热手心捂在他肚子上，顺时针揉。手法很老，但确实管用。', effects: { inLaw: 2, gasCount: 1, ...nw } },
       },
       startled: {
-        hint: '突然一声嚎，四肢猛地一乍，像是被什么吓到了。',
+        hint: '突然一声嚎，四肢猛地一乍，像是被什么吓到了——小拳头攥得死紧，指甲在你脖子上划了一道。',
         feed: { text: '含了两口就扭头吐掉，头往后仰，根本不吃。', effects: { energy: -1, ...nw } },
-        hold: { text: '用包被裹紧，贴在胸口，一下一下轻拍。五分钟，呼吸就匀了。', effects: { energy: -1, security: 2, nursingSkill: 1, ...nw } },
+        hold: { text: '用包被裹紧，贴在胸口，一下一下轻拍。你的心跳声比任何摇篮曲都管用——五分钟，呼吸就匀了。', effects: { energy: -1, security: 2, nursingSkill: 1, ...nw } },
         cryitout,
         grandma: { text: '婆婆披衣起来"叫叫"——在门口轻声喊了三遍名字，说魂吓掉了要叫回来。你半信半疑，但孩子确实慢慢不哭了。', effects: { inLaw: 2, security: 1, ...nw } },
       },
       soothe: {
-        hint: '不冷、不饿、尿布干爽、额头不烫。就是哭。',
+        hint: '不冷、不饿、尿布干爽、额头不烫、嗝也拍了——每一项都觉得对，他就是哭。',
         feed: { text: '又灌了 30ml，全喝了，打了个饱嗝——然后继续哭。他不是饿，你喂多了。', effects: { energy: -1, overfed: 1, ...nw } },
-        hold: { text: '抱起来的一瞬间，哭声降了一个调，小脑袋往你怀里拱。他要的就是这个。', effects: { energy: -1, security: 2, ...nw } },
+        hold: { text: '抱起来的一瞬间，哭声降了一个调，小脑袋往你怀里拱，像在确认什么。' + NL + '他要的就是这个——而你，也需要这个。', effects: { energy: -1, security: 2, ...nw } },
         cryitout,
         grandma: { text: '婆婆抱起来颠了两下就笑了——"还是奶奶有办法"她说。', effects: { inLaw: 3, security: -1, ...nw } },
       },
@@ -531,7 +533,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     },
     {
       name: '睡前夜读', stage: 'primary', mishap: '读到第三章你说"今天到这了"，他抗议无效——但五分钟后你在门缝里看见，他打着手电在被窝里接着看。',
-      smooth: '一章读完，他忽然说："妈/爸，书里这个人好像我们班的谁。"你愣了一下——他已经在用文学分析生活了。',
+      smooth: '一章读完，他忽然说："{parent}，书里这个人好像我们班的谁。"你愣了一下——他已经在用文学分析生活了。',
       smoothEffects: { security: 2, habit: 1 },
     },
   ];
@@ -633,6 +635,15 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       canTrigger: (state) => state.family.careMode !== null,
       make(state) {
         const reason = nightcryReason(state);
+        // 时间质感与伴侣状态：每一个不眠之夜的钟点不一样；连击越久，两个人越像轮班
+        const clock = util.pick(['一点二十', '两点五十', '三点四十', '四点整', '四点二十']);
+        const spouse = state.perspective === 'mama' ? '他' : '她';
+        const streak = state.child.nightWakeStreak;
+        const spouseLine = streak >= 5
+          ? `\n${spouse}在被窝里翻了个身，没有起来——你们已经默契地不再互相叫醒了。这不是体贴，是没力气了。`
+          : streak >= 2
+            ? `\n${spouse}含糊地问了句"要不要我起来"，没等回答就又睡了过去。`
+            : `\n${spouse}翻了个身，手在床边摸了两下，想帮忙又不知从哪儿帮起。`;
         const outcome = nightcryOutcomes(state, reason);
         const choices = [
           { text: '冲奶粉喂一顿', outcome: outcome.feed },
@@ -643,9 +654,9 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
           choices.push({ text: '让婆婆去', outcome: outcome.grandma });
         }
         return {
-          title: '凌晨，哭声又响了',
+          title: `凌晨${clock}，哭声又响了`,
           art: { pose: state.day <= 13 ? '新生儿' : '婴儿', expr: '大哭', outfit: '连体衣', scene: '家中·凌晨' },
-          text: `夜里的哭声又准时响起。你摸过去检查：${outcome.hint}\n到底是为什么，没有人告诉你。你只能猜。` + (G.util.seasonOf(state) === 'winter' ? '\n（冬天的凌晨，客厅冷得像个冰柜——你把睡衣裹紧了一点再去抱他。）' : ''),
+          text: `凌晨${clock}。哭声又一次准时响起，像有人在你耳边按下了开关。\n你摸黑过去检查：${outcome.hint}\n到底是为什么，没有人告诉你。你只能猜。${spouseLine}` + (G.util.seasonOf(state) === 'winter' ? '\n（冬天的凌晨，客厅冷得像个冰柜——你把睡衣裹紧了一点再去抱他。）' : ''),
           choices: choices.map((c) => ({
             text: c.text,
             effects: c.outcome.effects,
@@ -819,7 +830,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
             choices: [
               { text: '抱抱他，问细节，教他下次主动一点', cost: { energy: 1 }, effects: { energy: -1, security: 3, nursingSkill: 1 }, result: '你们聊了一路。第二天你向老师打听：分组时他确实慢半拍。又过了两周，他有了固定的"工地三人组"（他们自称）。' },
               { text: '"那明天带点贴纸去分给同学"', effects: { face: 1, setFlags: { '社交初体验': '用贴纸换来的朋友' } }, result: '立竿见影，第二天他就"朋友遍地"。你隐约觉得哪里不对，但说不出来。' },
-              { text: '"没事，妈妈/爸爸小时候也这样"', effects: { security: 1 }, result: '他抬头看你，眼睛里的问题很明显：那你后来有朋友了吗？你一时不知道怎么答。' },
+              { text: '"没事，{parent}小时候也这样"', effects: { security: 1 }, result: '他抬头看你，眼睛里的问题很明显：那你后来有朋友了吗？你一时不知道怎么答。' },
             ],
           },
         ];
@@ -1019,7 +1030,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
             {
               text: '吼完再教（教是教了，吼也是吼了）',
               effects: { security: -2, marriage: -1, habit: 1 },
-              result: '作业完成了，正确率不错。他睡前小声问你："妈/爸，你是不是不喜欢我了？"\n你说没有。你说完这句，在客厅黑着灯坐了一会儿。',
+              result: '作业完成了，正确率不错。他睡前小声问你："{parent}，你是不是不喜欢我了？"\n你说没有。你说完这句，在客厅黑着灯坐了一会儿。',
             },
             {
               text: '今晚算了，明天再说',
@@ -1080,7 +1091,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       canTrigger: () => true,
       make() {
         const scenes = [
-          { name: '耳机时代', text: '他的耳朵里常驻一副耳机。你说话的第一遍，永远听不见。\n某天你发现他把耳机分了一只给你："妈/爸，你听这段。"——那首歌你一个字都没听懂，但你听完了。', effects: { security: 1 } },
+          { name: '耳机时代', text: '他的耳朵里常驻一副耳机。你说话的第一遍，永远听不见。\n某天你发现他把耳机分了一只给你："{parent}，你听这段。"——那首歌你一个字都没听懂，但你听完了。', effects: { security: 1 } },
           { name: '"随便"', text: '"晚饭吃什么？""随便。""周末去哪？""随便。"\n你研究了三个月，破译了这门语言：随便=别问我+但不许不管我。难度堪比甲骨文。', effects: { mama: -1, nursingSkill: 1 } },
           { name: '深夜的灯', text: '凌晨十二点半，他房间的灯还亮着。你敲门送牛奶，看见他在刷题——不是作业，是自己的错题本。\n你没说话，把牛奶放下就出来了。有些努力，他自己知道就够了。', effects: { habit: 1, security: 1 } },
           { name: '饭桌沉默', text: '晚饭桌上，全程对话如下："好吃。""嗯。""再来一碗？""嗯。"\n你努力想找个话题，翻遍脑库存，只找到"这次月考"。话到嘴边，咽回去了——饭桌不该是审讯室。', effects: { mama: -1 } },
@@ -1121,7 +1132,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
           {
             name: '晚自习的灯', text: '晚上十点，你在校门口等他。教学楼灯火通明，每一格亮着的窗户后面，都是一个伏案的十七岁。\n人流涌出来，路灯把校服照成一片蓝白。',
             choices: [
-              { text: '接他，路上什么都不聊', effects: { security: 2 }, result: '车里的沉默是舒服的。偶尔他说一句"今天物理好难"，你回"嗯"。\n到了楼下他说："妈/爸，明天想吃你煮的面。"这是高三最贵的点歌。' },
+              { text: '接他，路上什么都不聊', effects: { security: 2 }, result: '车里的沉默是舒服的。偶尔他说一句"今天物理好难"，你回"嗯"。\n到了楼下他说："{parent}，明天想吃你煮的面。"这是高三最贵的点歌。' },
               { text: '让他自己走回来，锻炼独立', effects: {}, result: '他走的那条路要二十分钟。后来他告诉你，高三最喜欢的就是这二十分钟——可以不想任何题，也可以想任何事。' },
             ],
           },
@@ -1141,7 +1152,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       canTrigger: () => true,
       make() {
         const scenes = [
-          { name: '反过来教你', text: '他教你怎么用手机银行转账、怎么识别诈骗链接、怎么把照片存到"云"上。\n"妈/爸，你这个密码太简单了。"他一边嫌弃一边帮你改。你看着他操作如飞的手——什么时候轮到他教你东西了？', effects: { nursingSkill: 1, security: 1 } },
+          { name: '反过来教你', text: '他教你怎么用手机银行转账、怎么识别诈骗链接、怎么把照片存到"云"上。\n"{parent}，你这个密码太简单了。"他一边嫌弃一边帮你改。你看着他操作如飞的手——什么时候轮到他教你东西了？', effects: { nursingSkill: 1, security: 1 } },
           { name: '饭桌辩论', text: '他开始跟你辩论：高考制度、内卷、他喜欢的主播、你看不懂的亚文化。\n"你不懂。"他说。你刚要反驳，忽然想起：你爸妈当年也听不懂你的磁带和金庸。', effects: { marriage: 1 } },
           { name: '深夜长谈', text: '一个不用上晚自习的晚上，他忽然话很多：讲他的困惑、未来的迷茫、以及"其实我知道你们不容易"。\n你握着茶杯听了一个小时，没敢接话——怕一接，这个频道就关了。', effects: { security: 2, marriage: 2 } },
         ];
@@ -1152,7 +1163,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
           text: scene.text,
           choices: [
             { text: '认真听，少说', effects: { ...scene.effects, nursingSkill: 1 }, result: '你发现了一个秘密：十七岁的孩子不需要指导，需要观众。而你是他唯一的终身观众。' },
-            { text: '用你的人生经验给他指路', effects: {}, result: '"我们那时候……"你讲了十分钟。他听完说："时代不一样了，妈/爸。"\n你说"道理是一样的"——他笑了笑，没反驳。那笑里有敬爱，也有距离。' },
+            { text: '用你的人生经验给他指路', effects: {}, result: '"我们那时候……"你讲了十分钟。他听完说："时代不一样了，{parent}。"\n你说"道理是一样的"——他笑了笑，没反驳。那笑里有敬爱，也有距离。' },
           ],
         };
       },

@@ -6,14 +6,18 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 (function (G) {
   const QUEUE_CAP = 5;
 
-  // 文案槽替换：{child}/{ta}/{papa}/{mama}/{day}/{spouse}/{spouse_name}/{spouse_pron}
+  // 文案槽替换：{child}/{ta}/{papa}/{mama}/{spouse}/{spouse_name}/{spouse_pron}/{parent}/{sibling}/{day}
+  // {parent}=孩子对你的称呼（视角决定）、{sibling}=大宝对二宝的称呼（第一个孩子的性别决定）
   function resolveText(text, state) {
     if (typeof text !== 'string') return text;
     const pronoun = state.child.gender === 'boy' ? '他' : '她';
     const isMama = state.perspective === 'mama';
+    const sibling = state.child.gender === 'boy' ? '哥哥' : '姐姐'; // 第一个孩子是男孩→二宝叫他哥哥
     return text
       .replace(/\{child\}/g, state.child.name)
       .replace(/\{ta\}/g, pronoun)
+      .replace(/\{parent\}/g, isMama ? '妈' : '爸')
+      .replace(/\{sibling\}/g, sibling)
       .replace(/\{papa\}/g, state.names.papa)
       .replace(/\{mama\}/g, state.names.mama)
       .replace(/\{spouse\}/g, isMama ? '老公' : '老婆')
