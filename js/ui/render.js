@@ -390,8 +390,8 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
   function renderEnd(container, report, onRestart) {
     container.textContent = '';
     const box = el('div', 'end-box');
-    box.appendChild(el('h1', null, '十八岁了'));
-    box.appendChild(el('div', 'sub center', '—— 从呱呱坠地，到站台上那个不回头的背影 ——'));
+    box.appendChild(el('h1', null, '又一个轮回'));
+    box.appendChild(el('div', 'sub center', '—— 从呱呱坠地，到你也抱起了那个小东西 ——'));
 
     // ======== 灵魂：孩子的信 ========
     if (report.letter) {
