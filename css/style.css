@@ -211,6 +211,16 @@ button.ghost { background: transparent; color: var(--accent); border: 1px solid 
 .end-stats { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; }
 .end-stats b { display: block; font-size: 20px; color: var(--accent); }
 
+/* 一生回顾时间线 */
+.timeline-item {
+  display: flex; gap: 12px; padding: 8px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.timeline-item:last-child { border-bottom: none; }
+.tl-icon { font-size: 20px; flex-shrink: 0; width: 28px; text-align: center; }
+.tl-stage { font-size: 12px; color: var(--accent); font-weight: bold; margin-bottom: 2px; }
+.tl-text { font-size: 13px; line-height: 1.7; color: var(--ink); white-space: pre-wrap; }
+
 /* 孩子的信 */
 .letter-box {
   background: #fdf9f0;

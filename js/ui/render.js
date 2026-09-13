@@ -393,6 +393,22 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     box.appendChild(el('h1', null, '又一个轮回'));
     box.appendChild(el('div', 'sub center', '—— 从呱呱坠地，到你也抱起了那个小东西 ——'));
 
+    // ======== 一生回顾时间线 ========
+    if (report.timeline) {
+      const tl = el('div', 'end-section');
+      tl.appendChild(el('h2', null, '这一生'));
+      for (const item of report.timeline) {
+        const row = el('div', 'timeline-item');
+        row.appendChild(el('span', 'tl-icon', item.icon));
+        const body = el('div', 'tl-body');
+        body.appendChild(el('div', 'tl-stage', item.stage));
+        body.appendChild(el('div', 'tl-text', item.text));
+        row.appendChild(body);
+        tl.appendChild(row);
+      }
+      box.appendChild(tl);
+    }
+
     // ======== 灵魂：孩子的信 ========
     if (report.letter) {
       const letterBox = el('div', 'letter-box');

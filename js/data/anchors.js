@@ -3146,16 +3146,20 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       title: 'EMS，红色的信封',
       art: { pose: '青年', expr: '笑', outfit: '短袖', scene: '家门口' },
       make(state) {
-        const score = G.reportScore(state, 3);
+        // 映射到真实高考满分750：内部20-98 → 200-735
+        const raw = G.reportScore(state, 3);
+        const gaokao = Math.round(raw * 7.5); // 真实高考分
+        const L = G.CONFIG.GAOKAO_LINES;
         const forSelf = Boolean(state.flags['为自己活']);
         let uniFlag, uniText;
-        if (score >= 88) { uniFlag = '大学·985/211'; uniText = '顶尖学府。信封上那枚校徽，你在新闻联播里见过。亲戚群里有人@你了。'; }
-        else if (score >= 75) { uniFlag = '大学·一本'; uniText = '一所不错的一本。校名念出来，亲戚们都会点头。'; }
-        else if (score >= 60) { uniFlag = '大学·二本'; uniText = '一所普通二本。快递员比你们先看到"录取"两个字。你说"挺好挺好"，语气里那点遗憾他自己也听见了。'; }
-        else if (score >= 48) { uniFlag = '大学·三本'; uniText = '一所民办三本。录取通知书的质感不输名校——学费也不输：一年三万，四年十二万。你看着那个数字，把想说的话咽了回去。'; }
-        else { uniFlag = '大学·大专'; uniText = '大专。三年制，学费不高，专业很实——机电一体化。你说"也挺好"，这次是真的也挺好，因为你已经学会了在不确定里找确定。'; }
+        if (gaokao >= L.c985) { uniFlag = '大学·985/211'; uniText = `${gaokao}分。985录取。信封上那枚校徽，你在新闻联播里见过。亲戚群里有人@你了。`; }
+        else if (gaokao >= L.c211) { uniFlag = '大学·985/211'; uniText = `${gaokao}分。211录取。学校名字前面带着省份，说出来谁都知道是好学校。`; }
+        else if (gaokao >= L.cBen1) { uniFlag = '大学·一本'; uniText = `${gaokao}分。过了一本线${gaokao - L.cBen1}分。一所不错的一本。校名念出来，亲戚们都会点头。`; }
+        else if (gaokao >= L.cBen2) { uniFlag = '大学·二本'; uniText = `${gaokao}分。二本。快递员比你们先看到"录取"两个字。你说"挺好挺好"，语气里那点遗憾他自己也听见了。`; }
+        else if (gaokao >= L.cBen3) { uniFlag = '大学·三本'; uniText = `${gaokao}分。民办三本。录取通知书的质感不输名校——学费也不输：一年三万，四年十二万。`; }
+        else { uniFlag = '大学·大专'; uniText = `${gaokao}分。大专。三年制，学费不高，专业很实。你说"也挺好"，这次是真的也挺好。`; }
         return {
-          text: `七月末的一个下午，EMS 的车停在楼下。\n红色的大信封，比成绩单厚，比成绩单轻。他拆开，看了很久，然后递给你。\n${uniText}${forSelf ? '\n专业那一栏，印的是他自己填的那个名字。' : ''}`,
+          text: `七月末的一个下午，EMS 的车停在楼下。\n红色的大信封。他拆开——${gaokao}分。\n${uniText}${forSelf ? '\n专业那一栏，印的是他自己填的那个名字。' : ''}`,
           choices: [
             {
               text: '当晚全家下馆子，请了双方老人',
@@ -3345,6 +3349,80 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
               text: '"还是听妈/爸的吧——我们经验多。"',
               effects: { security: -2 },
               result: '电话那头沉默了三秒。\n"我知道了。"他说——和四年前填志愿时那个"行"一样轻。\n你又一次替他做了决定。但这一次你不确定他会不会听。',
+            },
+          ],
+        };
+      },
+    },
+
+    // ---------- 大学退学（挂科/游戏/迷茫） ----------
+    {
+      id: 'a_college_dropout', kind: 'anchor', priority: 'main', day: [5, 8], stage: 'college',
+      conditions: { notFlags: ['大学·985/211'] },
+      title: '辅导员的电话',
+      art: { pose: '青年', expr: '委屈', outfit: '新衣', scene: '宿舍' },
+      make(state) {
+        const reason = util.pick([
+          '挂了三门——不是不会，是上课的时候人在教室，魂在游戏里。',
+          '挂了两门。他说"大学比高三轻松多了"，然后就真的轻松了。',
+          '不适应。室友通宵开黑，他跟了两个月，绩点掉到了1.4。',
+        ]);
+        return {
+          text: `辅导员打电话来了。\n"${reason}"\n学校给了两个选择：留级重修，或者退学。`,
+          choices: [
+            {
+              text: '"留级！砸锅卖铁也要读完！"',
+              effects: { money: -15000, spendKind: 'education', energy: -2, security: 2, habit: 3 },
+              result: '留级一年，重修所有挂掉的课。他搬出了原来的宿舍，换了批室友。\n一年后他过了所有科目——虽然毕业证比同龄人晚了一年。',
+            },
+            {
+              text: '"退学吧。回家再说。"',
+              effects: { security: -3, setFlags: { '退学': '大学退学' } },
+              result: '他/她拖着行李箱回了家。那年春节亲戚问"孩子上大学了吧"，你们说"嗯"——然后迅速转移了话题。\n退学不是终点。但你们花了很长时间才接受这句话。',
+            },
+            {
+              text: '让他自己决定',
+              effects: { security: 1 },
+              result: '电话里他/她说："我想休学一年，不是退学。我想清楚自己要什么。"\n你同意了。一年后他/她回来了——虽然还是不知道要什么，但至少知道不要什么了。',
+            },
+          ],
+        };
+      },
+    },
+
+    // ---------- 硕士/博士深造 ----------
+    {
+      id: 'a_grad_school', kind: 'anchor', priority: 'main', day: [13, 14], stage: 'college',
+      conditions: { notFlags: ['退学'] },
+      title: '"我想继续读"',
+      art: { pose: '青年', expr: '专注', outfit: '新衣', scene: '图书馆' },
+      make(state) {
+        const elite = Boolean(state.flags['大学·985/211']);
+        const goGrad = elite ? 0.55 : 0.30;
+        if (util.chance(goGrad)) {
+          return {
+            text: '大四上学期，他/她说："我想考研究生。"\n不是找不到工作——是想在这个方向再走深一点。\n图书馆的灯他/她坐了三年，现在想再坐两三年。',
+            choices: [
+              {
+                text: '"考！家里全力支持。"',
+                effects: { money: -8000, spendKind: 'education', security: 3, habit: 3 },
+                result: '备考八个月，初试过线，复试通过。\n研究生录取通知书比本科那张薄——但分量不一样。本科是"考上了"，研究生是"选择了"。',
+              },
+              {
+                text: '"早点工作吧，学历够用了。"',
+                effects: { security: -1 },
+                result: '他/她"嗯"了一声。找了份工作，干得还行。\n工作两年后他/她还是考了在职研究生——用自己挣的钱。',
+              },
+            ],
+          };
+        }
+        return {
+          text: '大四上学期，身边的人都在做选择：考研的、找工作的、考公的、出国的。\n他/她说："我想直接工作。读了十六年了，够了。"',
+          choices: [
+            {
+              text: '"好。翅膀硬了。"',
+              effects: { security: 2, marriage: 1 },
+              result: '他/她笑了一下——不是敷衍的笑，是"你终于懂了"的笑。\n从小学到大学，十六年。你陪了十六年。接下来，该他自己走了。',
             },
           ],
         };

@@ -144,7 +144,6 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
   // 十八年终局：派生最终 flag + 生成孩子的信
   function endGame(state) {
-    // 派生终态 flag（不在满月/某章设——到十八岁才"定型"）
     if (state.child.security < 45) {
       state.flags['安全感不足(早期)'] = { day: state.day, source: '很多次的哭，没有得到回应' };
     }
@@ -157,6 +156,9 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       });
 
     const letter = buildLetter(state);
+
+    // ===== 一生回顾时间线（终章专用） =====
+    const timeline = buildTimeline(state);
 
     return {
       perspective: state.perspective,
@@ -175,6 +177,9 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       family: { ...state.family },
       security: state.child.security,
       letter,
+      timeline,
+      hasGrandchild: Boolean(state.flags['孙辈·降临']),
+      isNoMarriage: Boolean(state.flags['不婚主义']),
       seeds,
       log: state.log,
       stats: {
@@ -183,6 +188,84 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       },
       pendingLeft: state.pending.length,
     };
+  }
+
+  // ============================================================
+  // 一生回顾时间线：按阶段摘要，终章的灵魂拼图
+  // ============================================================
+  function buildTimeline(state) {
+    const f = state.flags;
+    const talentName = CONFIG.TALENTS.find((t) => t.id === state.child.talent).name;
+    const items = [
+      {
+        icon: '🏥', stage: '出生',
+        text: `${state.birthMonth}月 · ${state.region === 'north' ? '北方' : '南方'}。体重 ${state.child.birthWeight}kg，${CONFIG.CONSTITUTION_TIERS[state.child.constitution].name}体质，${CONFIG.TEMPERAMENTS.find(t => t.id === state.child.temperament).name}气质。天赋：${talentName}——此刻没人知道这意味着什么。`,
+      },
+      {
+        icon: '🌙', stage: '月子',
+        text: f['婆媳紧张'] ? '月子在婆媳的暗流中度过。那颗种子，后来在很多战场上发了芽。' : f['产后情绪被忽视'] ? '她的产后抑郁没有被人看见。这件事，家里很多年没人再提。' : '月子熬过来了。虽然狼狈，但没落下大的伤。',
+      },
+      {
+        icon: '🦠', stage: '婴儿期',
+        text: f['夜醒风暴亲历者'] ? '夜醒风暴里，你们见过了凌晨所有时刻的天花板。' : '翻身、辅食、会爬、叫了第一声爸妈。一岁抓周，' + (f['兴趣深耕'] ? '他抓的那个东西，后来真的成了他的方向。' : '抓了什么已经忘了——反正和后来的爱好没关系。'),
+      },
+      {
+        icon: '🎈', stage: '幼儿期',
+        text: f['哭闹有效'] ? 'terrible two 的超市躺地，你们妥协了。后来他学会了：哭是有用的。' : f['诚实被温柔对待'] ? '两岁半打翻牛奶说"是娃娃干的"——你温和地接住了。他从此学会了说真话。' : 'terrible two 在规矩和妥协之间过去了。',
+      },
+      {
+        icon: '🏫', stage: '幼儿园',
+        text: f['幼儿园·公办'] ? '公办园摇号中签，像中了彩票。' : f['幼儿园·国际'] ? '国际园，每年十五万的账单。' : '幼儿园毕业，抓周的方向（如果算数的话）和天赋对上了。' + (f['第一颗隐瞒种子'] ? '也是在幼儿园，他学会了第一句谎。' : ''),
+      },
+      {
+        icon: '📚', stage: '小学',
+        text: f['学区房'] ? '为了那所学校，你们买了学区房——六十万。' : '' , 
+      },
+      {
+        icon: '✏️', stage: '初中',
+        text: f['青春期·敞开'] ? '青春期的房门关了又开——因为你们学会了敲门。' : f['青春期·封闭'] ? '青春期的门锁上了，钥匙在他手里。' : '初中三年，平平淡淡。中考分流：' + (f['分流·重点普高'] ? '重点高中。' : f['分流·职高'] ? '职高——选了一个和天赋对口的专业。' : '普通高中。'),
+      },
+      {
+        icon: '🎓', stage: '高中',
+        text: f['被接住'] ? '高三那年他说"活着好累"——你接住了。这件事他记了一辈子。' : f['心理危机'] ? '高三那年他说"活着好累"——你说"谁不累"。后来他学会了不说。' : '' ,
+      },
+      {
+        icon: '📋', stage: '高考',
+        text: f['为自己活'] ? '志愿表上，他自己填的专业——你把笔递给了他。' : f['为你活'] ? '志愿表上，你改了他填的专业。"行。"他说。就一个字。' : '高考完的那个夏天，全家去了一趟短途旅行。',
+      },
+      {
+        icon: '🎓', stage: '大学',
+        text: Object.keys(f).find(k => k.startsWith('大学·')) ? Object.keys(f).find(k => k.startsWith('大学·')).split('·')[1] + '。' + (f['退学'] ? '但中途退学了。' : '毕业了。') : '大学毕业。',
+      },
+      {
+        icon: '💼', stage: '工作',
+        text: f['就业·蓝领逆袭'] ? '学历不高，但手艺值钱。月薪比你当年工作五年还高。' : f['就业·学历倒挂'] ? '学历很高，但工作很难找。孔乙己的长衫——他/她自己脱下来了。' : '找到了一份工作，不好不坏。',
+      },
+      {
+        icon: f['不婚主义'] ? '🌱' : '💍', stage: f['不婚主义'] ? '选择' : '成家',
+        text: f['不婚主义'] ? '他/她认真地告诉你们：不打算结婚。' + (state.child.security >= 55 ? '你尊重了这个选择。' : '你说"以后会遇到对的人的"。') : f['彩礼·谈崩'] ? '彩礼没谈拢，两家人的第一次合作以各自的委屈告终。' : f['买房·掏空养老'] ? '首付掏空了你们的养老钱。你说"不用还"。' : '彩礼谈成了，婚礼办了，房贷开始了。',
+      },
+    ];
+
+    // 终章句
+    if (f['孙辈·降临']) {
+      items.push({
+        icon: '👶', stage: '又一个轮回',
+        text: 'TA有了自己的孩子。你抱起那个皱巴巴的小东西，忽然想起二十八年前的产房——一模一样的重量，一模一样的让你不敢动。\n\n只不过这一次，你可以笑完就还回去了。\n\n你当年怎么对TA的，TA现在就会怎么对TA的孩子。\n\n这就是轮回。',
+      });
+    } else if (f['不婚主义']) {
+      items.push({
+        icon: '🌍', stage: '另一种人生',
+        text: '他/她一个人旅行、养猫、升职、换城市。\n每次视频通话你都看见一种平静——不是没有孤独，是和孤独达成了协议。\n\n不是所有人都要走同一条路。你花了很长时间才接受这句话。\n但接受了。',
+      });
+    } else {
+      items.push({
+        icon: '🏠', stage: '此刻',
+        text: '他/她在自己的城市、自己的家里过日子。视频通话每周一次，每次不到十分钟。\n你从这个频率里学会了知足——因为你知道，有很多父母，连这十分钟都没有。',
+      });
+    }
+
+    return items;
   }
 
   // ============================================================

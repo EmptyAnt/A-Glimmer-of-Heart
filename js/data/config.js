@@ -162,6 +162,16 @@ GAME.CONFIG = {
     { id: 'late', name: '37 岁以上', incomeMul: 1.15, sickMul: 1.25, mamaStart: -6, desc: '高龄产妇：产检档案比人厚，每一项都是选择题' },
   ],
 
+  // 高考分数线（参考各省均值，满分750）
+  GAOKAO_LINES: {
+    c985: 630,   // 985 院校
+    c211: 580,   // 211 院校
+    cBen1: 500,  // 一本线
+    cBen2: 420,  // 二本线
+    cBen3: 340,  // 三本/民办线
+    cZhuan: 200, // 专科线
+  },
+
   PRICES: {
     yueziCenter: 68000,    // 顶级月子中心
     yuesao: 13000,         // 住家育儿嫂（月）
