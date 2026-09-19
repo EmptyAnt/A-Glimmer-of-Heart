@@ -1168,6 +1168,119 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
         };
       },
     },
+    {
+      // 大学日常：离巢后的第一手消息
+      id: 'tpl_campus', name: '大学日常', stage: 'college', weight: 22, minDay: 1, perDayMax: 1, cooldown: 1,
+      canTrigger: () => true,
+      make() {
+        const scenes = [
+          {
+            name: '选课大战', text: '他半夜十二点定闹钟抢体育课——瑜伽满了，只剩太极拳。\n你早上看到消息："妈/爸，我这学期要学打太极了。"你笑了十分钟：那个坐不住的孩子，要练太极了。',
+            choices: [
+              { text: '"挺好的，修身养性。"', effects: { security: 1 }, result: '学期末他真的在阳台比划了一整套二十四式——歪歪扭扭，但一招没落下。' },
+              { text: '"怎么不选个有用的？"', effects: { security: -1 }, result: '"太极怎么没用了？"他顶了一句，然后两人都沉默。\n其实你只是想聊两句。话赶话，又聊死了。' },
+            ],
+          },
+          {
+            name: '室友矛盾', text: '他和室友因为空调温度闹了别扭，一个要 26 度一个要 20 度，冷战三天。\n"宿舍又不是我家。"他说，"忍着呗。"\n这是他第一次向你描述"忍着"的生活。',
+            choices: [
+              { text: '"主动聊聊呗，互相让一让"', effects: { security: 1, nursingSkill: 1 }, result: '第二天他发来消息："搞定了，25 度，折中方案。"\n（他正在学会你当年在办公室学会的事。）' },
+              { text: '"受不了就换宿舍。"', effects: { face: 1 }, result: '"算了，换哪儿都一样。"他说。\n这句话你没接——因为他说的对，而你不知道该不该心疼。' },
+            ],
+          },
+          {
+            name: '第一份兼职', text: '他找了份家教，一小时 80，每周两次。\n第一次拿到工资，他给你转了 200："给你买点好吃的。"\n你没收。截图存了下来。',
+            choices: [
+              { text: '收下，然后双倍买成特产寄过去', effects: { money: -400, spendKind: 'other', security: 2 }, result: '包裹寄到宿舍，他在视频里拆开：家乡的酱鸭。\n"妈/爸你有病吧！"他笑着骂你。\n那包酱鸭被室友们分完了——他一根都没舍得吃。' },
+              { text: '"自己留着花，挣的钱自己用。"', effects: { security: 2, marriage: 1 }, result: '"那这 200 块我请你吃大餐——放假回去的。"\n这笔"大餐"的债，他放假真还了。' },
+            ],
+          },
+        ];
+        const scene = util.pick(scenes);
+        return {
+          title: `大学：${scene.name}`,
+          art: { pose: '青年', expr: '平静', outfit: '新衣', scene: '宿舍' },
+          text: scene.text,
+          choices: scene.choices,
+        };
+      },
+    },
+    {
+      // 视频通话：离巢后与TA的主要连接
+      id: 'tpl_video_call', name: '视频通话', stage: 'both', weight: 20, minDay: 1, perDayMax: 1, cooldown: 2,
+      canTrigger: (state) => ['college', 'adult'].includes(G.engine.stageOf(state.day).id),
+      make(state) {
+        const scenes = [
+          {
+            name: '"吃了吗"', text: '每周固定来一次视频。\n"吃了吗？""吃了。""吃的什么？""就……饭。"\n镜头晃了一下，你看见他身后的桌上——外卖盒。',
+            choices: [
+              { text: '"下次自己煮个面也行，我教你。"', effects: { security: 2, nursingSkill: 1 }, result: '你远程教了他煮面：水开下面、过冷水、加猪油和酱油。\n一周后他发来照片——糊了，但像模像样。' },
+              { text: '"你就糊弄我吧。"', effects: { mama: -1 }, result: '他嘿嘿一笑，话题就过去了。\n你们都知道这通电话的意义不在内容——在于确认彼此都还好。' },
+            ],
+          },
+          {
+            name: '报喜不报忧', text: '他聊了十分钟社团、室友、天气，语气轻快。\n挂了电话你才反应过来：他一句都没提上周生病的事——还是房东阿姨发消息你才知道的。',
+            choices: [
+              { text: '装作不知道，下次多聊十分钟', effects: { security: 2 }, result: '你护住了他"我已经长大了"的体面。\n他在下一次通话里主动说了："上次感冒好了，别担心。"\n——他知道你知道。这就够了。' },
+              { text: '"生病为什么不告诉我？"', effects: { security: -1, marriage: 1 }, result: '"不想让你担心。"他说得理直气壮。\n你们为"报喜不报忧"辩论了半小时。谁也没说服谁——但下次他提前说了。' },
+            ],
+          },
+          {
+            name: '镜头外的声音', text: '视频里他忽然分神，朝画面外喊了一句什么——好像有人在旁边。\n"谁呀？""同学。一起写作业呢。"\n你"哦"了一声，没多问。但你注意到他眼角是笑着的。',
+            choices: [
+              { text: '不问。让他在没有观众的地方，自己决定说或不说', effects: { security: 3 }, result: '三周后的某通电话里，"同学"变成了一个名字，出现了四次。\n你数了。没说破。' },
+              { text: '"刚才是谁呀？"', effects: { security: -1 }, result: '"同学啊。"他答得很快。\n快到让你意识到：追问会把门关上，等待会让门自己开。你选了后者。' },
+            ],
+          },
+        ];
+        const scene = util.pick(scenes);
+        return {
+          title: `视频通话：${scene.name}`,
+          art: { pose: '青年', expr: '笑', outfit: '新衣', scene: '视频通话' },
+          text: scene.text,
+          choices: scene.choices,
+        };
+      },
+    },
+    {
+      // 空巢日常：两个人的饭桌
+      id: 'tpl_empty_nest', name: '空巢日常', stage: 'adult', weight: 20, minDay: 1, perDayMax: 1, cooldown: 2,
+      canTrigger: () => true,
+      make(state) {
+        const persp = state.perspective;
+        const spouse = persp === 'mama' ? '老公' : '老婆';
+        const scenes = [
+          {
+            name: '两个人的饭桌', text: `他走了之后，饭桌一下子大了。\n${spouse}炒了三个菜——还是按三个人的量。两人对着三个菜吃了半天，谁都没说话。\n最后${spouse}说："明天改俩菜吧。"你说"好"。`,
+            choices: [
+              { text: '"周末叫TA回来吃饭。"', effects: { security: 1, marriage: 2 }, result: '周六他回来了，饭桌上多了一个人，菜刚好。\n你忽然明白：所谓家，就是菜量和人数总在互相追逐。' },
+              { text: '学做新菜，两个人的份量刚刚好', effects: { mama: 2, marriage: 3 }, result: '你报了个线上烹饪课。新菜两人吃刚刚好，还能剩一点明天带饭。\n生活少了一个常驻成员，多了一份精确。' },
+            ],
+          },
+          {
+            name: '重游', text: `${spouse}翻出二十年前的照片："我们蜜月去的那个古镇，现在什么样了？"\n你看了眼日历——周末没安排。这个年纪，说走就走还是能做到的。`,
+            choices: [
+              { text: '说走就走', cost: { money: 2000 }, effects: { money: -2000, spendKind: 'other', marriage: 5, mama: 4 }, result: '古镇变化不大，只是店铺换了三代人。你们在当年的桥头拍了张同角度的照片。\n对比那张二十年前的——胖了，老了，但站得更近了。' },
+              { text: '"等天气暖和点。"', effects: { marriage: -1 }, result: '"好，等暖和点。"这话说了三次，入秋了。\n有些事不会消失，只会被无限期地往后放。' },
+            ],
+          },
+          {
+            name: '老照片', text: `大扫除翻出一箱老照片：满月的、幼儿园的、小学戴红领巾的、高中校服的、大学学位服的。\n${spouse}一张张看，忽然停住："这一张，你还能想起来是哪天吗？"\n照片上他哭得撕心裂肺，你们仨都笑着。`,
+            choices: [
+              { text: '一张一张过，把日期写在背面', cost: { energy: 1 }, effects: { energy: -1, marriage: 4, security: 1 }, result: '写到一半发现好几张都对不上日期了，两人对着日历推理了半天。\n最后你把这些照片按年份码好，发了消息给他："你的人生，我们替你保管着。"' },
+              { text: '拍了照发家庭群', effects: { face: 2 }, result: '群里炸出一堆"哈哈哈""好可爱"。他本人回了三个字："删了吧。"\n你回："休想。"' },
+            ],
+          },
+        ];
+        const scene = util.pick(scenes);
+        return {
+          title: `空巢：${scene.name}`,
+          art: { pose: '青年', expr: '平静', outfit: '新衣', scene: '家中' },
+          text: scene.text,
+          choices: scene.choices,
+        };
+      },
+    },
   ];
 
   // 导出内容池给事件编辑器的"数据池"面板（只读展示）
