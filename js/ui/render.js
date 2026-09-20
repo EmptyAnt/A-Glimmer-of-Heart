@@ -33,46 +33,6 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     parent.appendChild(bar);
   }
 
-  // art 区块：优先用 assets/ 下的图片（背景板+立绘+表情贴片合成），缺图降级 emoji
-  function artBlock(art) {
-    const box = el('div', 'art-block');
-    // 降级内容先渲染（同步，不闪空）
-    const emoji = el('div', 'emoji', EXPR_EMOJI[art.expr] || '🙂');
-    const key = el('div', 'art-key', `体态·${art.pose}｜表情·${art.expr}\n服装·${art.outfit}｜场景·${art.scene}`);
-    box.append(emoji, key);
-
-    // 异步探测图片，命中则替换
-    if (G.assets) {
-      G.assets.resolve(art).then((r) => {
-        if (r.sceneUrl || r.poseUrl) {
-          box.textContent = '';
-          box.classList.add('has-art');
-          if (r.sceneUrl) {
-            const bg = el('div', 'art-scene');
-            bg.style.backgroundImage = `url('${r.sceneUrl}')`;
-            box.appendChild(bg);
-          }
-          if (r.poseUrl) {
-            const pose = el('img', 'art-pose');
-            pose.src = r.poseUrl;
-            pose.alt = `${art.pose}·${art.outfit || ''}`;
-            box.appendChild(pose);
-            if (r.exprUrl) {
-              const ex = el('img', 'art-expr');
-              ex.src = r.exprUrl;
-              ex.alt = art.expr;
-              box.appendChild(ex);
-            }
-          } else {
-            // 无立绘但有背景：emoji 保留在背景上
-            box.appendChild(emoji);
-          }
-        }
-      });
-    }
-    return box;
-  }
-
   function careModeLabel(mode) {
     return {
       center: '月子中心', yuesao: '育儿嫂', grandma: '婆婆照顾', self: '自己扛',
@@ -195,12 +155,45 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
     childBox.appendChild(chips);
   }
 
+  // 视觉小说式演出：场景铺满卡片上部，立绘站在场景里，文字在下方渐变白底上
+  function buildCardShell(card, art, withScene) {
+    const bg = el('div', 'ev-bg');
+    const scrim = el('div', 'ev-scrim');
+    const content = el('div', 'ev-content');
+    card.append(bg, scrim, content);
+    if (G.assets && art) {
+      G.assets.resolve(art).then((r) => {
+        if (withScene && r.sceneUrl) {
+          bg.style.backgroundImage = `url('${r.sceneUrl}')`;
+          card.classList.add('has-scene');
+        } else {
+          card.classList.add('no-scene');
+        }
+        if (r.poseUrl) {
+          const pose = el('img', 'ev-portrait');
+          pose.src = r.poseUrl;
+          pose.alt = art.pose || '';
+          card.appendChild(pose);
+          if (r.exprUrl) {
+            const ex = el('img', 'ev-expr');
+            ex.src = r.exprUrl;
+            ex.alt = art.expr || '';
+            card.appendChild(ex);
+          }
+        }
+      });
+    } else {
+      card.classList.add('no-scene');
+    }
+    return content;
+  }
+
   function renderEventCard(container, event, queuePos, queueLen, state, onChoose) {
     container.textContent = '';
     const card = el('div', 'event-card');
-    card.appendChild(artBlock(event.art));
-    card.appendChild(el('div', 'event-title', event.title));
-    card.appendChild(el('div', 'event-text', event.text));
+    const content = buildCardShell(card, event.art, true);
+    content.appendChild(el('div', 'event-title', event.title));
+    content.appendChild(el('div', 'event-text', event.text));
     const choices = el('div', 'choices');
     for (const choice of event.choices) {
       const btn = el('button', 'choice-btn');
@@ -222,21 +215,23 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
       }
       choices.appendChild(btn);
     }
-    card.appendChild(choices);
-    container.appendChild(card);
+    content.appendChild(choices);
     if (queueLen > 1) {
-      container.appendChild(el('div', 'queue-dots', '●'.repeat(queuePos + 1) + '○'.repeat(queueLen - queuePos - 1)));
+      content.appendChild(el('div', 'queue-dots', '●'.repeat(queuePos + 1) + '○'.repeat(queueLen - queuePos - 1)));
     }
+    container.appendChild(card);
   }
 
   function renderResultCard(container, event, resultText, onContinue) {
     container.textContent = '';
     const card = el('div', 'event-card');
-    card.appendChild(el('div', 'event-title', event.title));
-    card.appendChild(el('div', 'result-text', resultText));
+    const content = buildCardShell(card, event.art, true);
+    content.appendChild(el('div', 'event-title', event.title));
+    content.appendChild(el('div', 'result-text', resultText));
     const btn = el('button', null, '继续');
+    btn.style.marginTop = '12px';
     btn.addEventListener('click', onContinue);
-    card.appendChild(btn);
+    content.appendChild(btn);
     container.appendChild(card);
   }
 

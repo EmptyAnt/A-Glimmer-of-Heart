@@ -315,7 +315,7 @@ SCENES['家中·深夜'] = room(C['night'], '#333b52', '') + \
     '<rect x="90" y="70" width="150" height="110" rx="4" fill="#2c3450" stroke="#556080" stroke-width="6"/>' + \
     ''.join('<circle cx="%d" cy="%d" r="3" fill="#dfe6f5"/>' % (130 + k * 26, 100 + (k % 3) * 22)
             for k in range(5)) + \
-    sofa(180, 320, '#5a5f7d') + plant(560, 396, 0.9)
+    sofa(180, 320, '#5a5f7d') + plant(560, 396, 0.9) + GLOW_DEFS
 
 SCENES['家中·凌晨'] = ('<rect width="800" height="500" fill="%s"/>' % C['night2']) + NIGHT_DEFS + \
     '<circle cx="640" cy="110" r="42" fill="#e8ecf5"/><circle cx="626" cy="100" r="38" fill="%s"/>' % C['night2'] + \
@@ -378,7 +378,7 @@ SCENES['公园'] = ('<rect width="800" height="300" fill="#cfe3ee"/>') + \
 
 SCENES['客厅'] = room(C['cream'], C['wood']) + \
     '<rect x="240" y="90" width="300" height="170" rx="10" fill="%s" stroke="%s" stroke-width="10"/>' % (C['night'], '#8a6a48') + \
-    '<circle cx="300" cy="300" r="26" fill="%s"/><circle cx="360" cy="330" r="20" fill="#93aec6"/><rect x="420" y="290" width="70" height="46" rx="10" fill="#e8c67a"/>' + \
+    '<circle cx="300" cy="300" r="26" fill="' + C['orange'] + '"/><circle cx="360" cy="330" r="20" fill="#93aec6"/><rect x="420" y="290" width="70" height="46" rx="10" fill="#e8c67a"/>' + \
     sofa(560, 300, '#d98a6a') + plant(90, 386, 0.85)
 
 SCENES['餐桌'] = room('#f5e8d5', C['wood']) + \
@@ -668,9 +668,14 @@ def main():
     for name, body in EXPRS.items():
         save('exprs', name, expr(body))
 
-    # 场景
+    # 场景（包 svg 外壳；含光晕的场景已在 body 内自带 GLOW_DEFS/NIGHT_DEFS）
     for name, body in SCENES.items():
-        save('scenes', name, body)
+        defs = GLOW_DEFS if 'url(#glow)' in body and 'GLOW' not in name else ''
+        wrapped = svg(800, 500, body, defs)
+        # 夜景的月晕渐变也要带上
+        if 'url(#moonlite)' in body:
+            wrapped = wrapped.replace('<defs>' + defs, '<defs>' + defs + NIGHT_DEFS)
+        save('scenes', name, wrapped)
 
     print('poses: 5 + 4 服装差分')
     print('exprs: %d' % len(EXPRS))

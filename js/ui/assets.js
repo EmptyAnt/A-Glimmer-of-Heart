@@ -65,7 +65,8 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
   }
 
   function url(kind, ...parts) {
-    return `assets/${kind}/${fileName(...parts)}`;
+    // v 参数防陈旧缓存（资产更新时改 CONFIG.ASSET_VERSION）
+    return `assets/${kind}/${fileName(...parts)}?v=${(G.CONFIG && G.CONFIG.ASSET_VERSION) || '1'}`;
   }
 
   // 解析一个 art 对象 → { sceneUrl, poseUrl, exprUrl }（均可能为 null）
@@ -79,7 +80,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 
     async function probeAny(kind, stem2) {
       for (const ext of ['.png', '.svg']) {
-        const u = `assets/${kind}/${stem2}${ext}`;
+        const u = `assets/${kind}/${stem2}${ext}?v=${(G.CONFIG && G.CONFIG.ASSET_VERSION) || '1'}`;
         if (await probe(u)) return u;
       }
       return null;

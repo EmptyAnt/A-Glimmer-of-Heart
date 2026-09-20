@@ -5,6 +5,7 @@ var GAME = globalThis.GAME || (globalThis.GAME = {});
 GAME.CONFIG = {
   VERSION: '0.1.0',
   TITLE: '寸心',
+  ASSET_VERSION: '2', // 资产更新时 +1，用于刷新图片缓存
   DAILY_ENERGY: 3,         // 月子期每天的基础精力（婴儿期由 STAGES 配置覆盖）
 
   PRESETS: [
